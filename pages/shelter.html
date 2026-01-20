@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Animal Shelter Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="shelter.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="brand">
+      <img class="logo" src="/assets/header_logo.png" alt="Life Bridge 로고" />
+    </a>
+
+    <nav class="main-nav">
+      <ul class="nav-list">
+        <li><a href="/">홈</a></li>
+        <li><a href="/shelters">보호소</a></li>
+        <li><a href="/animals">입양동물</a></li>
+        <li><a href="/pages/foster.html">임시보호자</a></li>
+      </ul>
+    </nav>
+
+    <div class="auth-actions">
+      <a href="/login">로그인</a>
+      <a href="/signup" class="btn-primary">회원가입</a>
+    </div>
+  </div>
+</header>
+<section class="section">
+  <h1>Our animal shelter</h1>
+
+  <div class="circle-wrap">
+    <div class="circle">25.5%<br><span>압박지수</span></div>
+    <div class="circle dark">75.2%<br><span>보호 동물 수</span></div>
+    <div class="circle light">66.3%<br><span>지역 보호율</span></div>
+    <div class="circle">57.8%<br><span>평균 보호율</span></div>
+  </div>
+
+  <div class="main-card">
+    <div class="image-box">IMG</div>
+    <div class="content-box"></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>보호소 목록</h2>
+
+  <div class="filter-row">
+    <select id="provinceSelect">
+      <option value="">시/도 선택</option>
+    </select>
+
+    <select id="citySelect" disabled>
+      <option value="">시/군/구 선택</option>
+    </select>
+  </div>
+    <div class="tag-row">
+      <button class="tag active">align1</button>
+      <button class="tag">align2</button>
+      <button class="tag">align3</button>
+      <button class="tag">align4</button>
+      <button class="tag">align5</button>
+    </div>
+
+  <div id="cardContainer" class="card-grid"></div>
+  <div id="pagination" class="pagination"></div>
+</section>
+
+<!-- Modal -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modalCloseBtn">×</button>
+    <h3>보호소 상세</h3>
+    <p id="modalContent"></p>
+  </div>
+</div>
+
+<script src="shelter.js"></script>
+</body>
+</html>
