@@ -7,14 +7,18 @@
   <title>임시보호자 현황</title>
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="../css/foster-style.css" />
-  <script src="../js/api-resque-data.js" defer></script>
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <script type="module" src="../js/foster-dashboard.js"></script>
+  <script src="../js/foster-filter.js" defer></script>
 </head>
 
 <body>
   <header class="site-header">
     <div class="header-inner">
       <a href="/" class="brand-logo">
-        <img src="../assets/images/account.svg" alt="브랜드로고">
+        <img src="../assets/images/header-logo.svg" alt="브랜드로고">
       </a>
       <!-- 네비 메뉴 -->
       <nav class="main-nav">
@@ -61,44 +65,49 @@
       <!-- select-option -->
       <div class="foster-form">
         <form class="foster-filter" name="foster-filter">
+
           <select class="filter-area" name="filter-area" id="filter-area">
-            <option value="area-all">전체 지역</option>
-            <option value="area-seoul">서울특별시</option>
-            <option value="area-busan">부산광역시</option>
-            <option value="area-daegu">대구광역시</option>
-            <option value="area-incheon">인천광역시</option>
-            <option value="area-gwangju">광주광역시</option>
-            <option value="area-sejong">세종특별자치시</option>
-            <option value="area-daejeon">대전광역시</option>
-            <option value="area-ulsan">울산광역시</option>
-            <option value="area-gyeonggi">경기도</option>
-            <option value="area-gangwon">강원특별자치도</option>
-            <option value="area-chungbuk">충청북도</option>
-            <option value="area-chungnam">충청남도</option>
-            <option value="area-jeonbuk">전북특별자치도</option>
-            <option value="area-jeonnam">전라남도</option>
-            <option value="area-gyeongbuk">경상북도</option>
-            <option value="area-gyeongnam">경상남도</option>
-            <option value="area-jeju">제주특별자치도</option>
+            <option value="area-all" class="area-all">전체 지역</option>
+            <option value="area-seoul" class="area-seoul">서울특별시</option>
+            <option value="area-busan" class="area-busan">부산광역시</option>
+            <option value="area-daegu" class="area-daegu">대구광역시</option>
+            <option value="area-incheon" class="area-incheon">인천광역시</option>
+            <option value="area-gwangju" class="area-gwangju">광주광역시</option>
+            <option value="area-sejong" class="area-sejong">세종특별자치시</option>
+            <option value="area-daejeon" class="area-daejeon">대전광역시</option>
+            <option value="area-ulsan" class="area-ulsan">울산광역시</option>
+            <option value="area-gyeonggi" class="area-gyeonggi">경기도</option>
+            <option value="area-gangwon" class="area-gangwon">강원특별자치도</option>
+            <option value="area-chungbuk" class="area-chungbuk">충청북도</option>
+            <option value="area-chungnam" class="area-chungnam">충청남도</option>
+            <option value="area-jeonbuk" class="area-jeonbuk">전북특별자치도</option>
+            <option value="area-jeonnam" class="area-jeonnam">전라남도</option>
+            <option value="area-gyeongbuk" class="area-gyeongbuk">경상북도</option>
+            <option value="area-gyeongnam" class="area-gyeongnam">경상남도</option>
+            <option value="area-jeju" class="area-jeju">제주특별자치도</option>
           </select>
+
           <select class="filter-animal" name="filter-animal" id="filter-animal">
-            <option value="animall-all">전체 동물</option>
-            <option value="animall-dog">강아지</option>
-            <option value="animall-cat">고양이</option>
-            <option value="animall-etc">기타(토끼,햄스터)</option>
+            <option value="animall-all" class="animall-all">전체 동물</option>
+            <option value="animall-dog" class="animall-dog">강아지</option>
+            <option value="animall-cat" class="animall-cat">고양이</option>
+            <option value="animall-etc" class="animall-etc">기타(토끼,햄스터)</option>
           </select>
+
           <select class="filter-period" name="filter-period" id="filter-period">
-            <option value="period-all">전체 기간</option>
-            <option value="period-month">1개월 ~ 3개월</option>
-            <option value="period-three">3개월 ~ 6개월</option>
-            <option value="period-half">6개월 ~ 1년</option>
-            <option value="period-years">1년 이상</option>
+            <option value="period-all" class="period-all">전체 기간</option>
+            <option value="period-month" class="period-month">1개월 ~ 3개월</option>
+            <option value="period-three" class="period-three">3개월 ~ 6개월</option>
+            <option value="period-half" class="period-half">6개월 ~ 1년</option>
+            <option value="period-years" class="period-years">1년 이상</option>
           </select>
+
           <select class="filter-state" name="filter-state" id="filter-state">
-            <option value="state-all">전체 상태</option>
-            <option value="state-enble">긴급지원 가능</option>
-            <option value="state-disable">긴급지원 불가능</option>
+            <option value="state-all" class="state-all">전체 상태</option>
+            <option value="state-enble" class="state-enble">긴급지원 가능</option>
+            <option value="state-disable" class="state-disable">긴급지원 불가능</option>
           </select>
+
         </form>
       </div>
       <!-- 활동 중인 임시보호자 : 카드리스트 영역(Grid) -->
