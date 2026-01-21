@@ -176,7 +176,7 @@ const fetchAbandonmentAPIAll = async (bgnde, endde) => {
 
 // 경기도 보호소 API 조회
 const fetchGyeonggiShelterAPI = async () => {
-  const API_KEY = "35a34e22a23d55be2e0b3c03a3b6cd3ce7fa2391c15cce9467c50353fe26c724";
+  const API_KEY = "a37374b4a7c94f8087c8db437f0473a3";
 
   const params = new URLSearchParams({
     KEY: API_KEY,
@@ -317,11 +317,35 @@ async function updateShelters() {
     return { bytes: 0 };
   }
 
-  // 경기도 보호소 API 데이터 가져오기
-  console.log("📡 경기도 보호소 API 조회 중...");
-  const { shelters: gyeonggiShelters, bytes: shelterBytes } = await fetchGyeonggiShelterAPI();
-  console.log(`   ✅ 경기도 보호소 API 조회 완료 (다운로드: ${formatBytes(shelterBytes)})`);
-  const gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
+  // 기존 shelters에서 shelterCapacity 맵 생성 (전화번호 → capacity)
+  const existingCapacityMap = {};
+  const existingSheltersRef = ref(db, "rescuedAnimals/shelters/list");
+  const existingSnapshot = await get(existingSheltersRef);
+  if (existingSnapshot.exists()) {
+    const existingShelters = existingSnapshot.val();
+    existingShelters.forEach((shelter) => {
+      const tel = normalizePhoneNumber(shelter.info?.careTel);
+      if (tel && shelter.info?.shelterCapacity && shelter.info.shelterCapacity !== "미확인") {
+        existingCapacityMap[tel] = shelter.info.shelterCapacity;
+      }
+    });
+    console.log(`📦 기존 shelterCapacity 로드: ${Object.keys(existingCapacityMap).length}개`);
+  }
+
+  // 경기도 보호소 API 데이터 가져오기 (기존 capacity가 없는 경우만 매칭)
+  let gyeonggiShelterMap = {};
+  let shelterBytes = 0;
+  const needsMatching = Object.keys(existingCapacityMap).length === 0;
+
+  if (needsMatching) {
+    console.log("📡 경기도 보호소 API 조회 중...");
+    const { shelters: gyeonggiShelters, bytes } = await fetchGyeonggiShelterAPI();
+    shelterBytes = bytes;
+    console.log(`   ✅ 경기도 보호소 API 조회 완료 (다운로드: ${formatBytes(shelterBytes)})`);
+    gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
+  } else {
+    console.log("📦 기존 shelterCapacity 사용 (경기도 API 스킵)");
+  }
 
   console.log(`\n📊 보호소별 그룹화 시작...`);
 
@@ -377,48 +401,57 @@ async function updateShelters() {
     const normalizedTel = normalizePhoneNumber(careTel);
     const matchedShelter = gyeonggiShelterMap[normalizedTel];
 
+    // 기존 capacity 우선 사용, 없으면 경기도 API에서, 그것도 없으면 "미확인"
+    const existingCapacity = existingCapacityMap[normalizedTel];
+    const apiCapacity = matchedShelter?.ACEPTNC_ABLTY_CNT;
+    const shelterCapacity = existingCapacity || apiCapacity || "미확인";
+
     // 경기도 API 데이터가 있으면 추가 정보 병합
     if (matchedShelter) {
-      group.info = {
-        ...group.info,
-        jibunAddr: matchedShelter.JIBUN_ADDR || null,
-        divisionNm: matchedShelter.ENTRPS_NM || null,
-        saveTrgetAnimal: matchedShelter.ANIMAL_HDLG_KND_NM || null,
-        operOpenHhmm: matchedShelter.OPER_TIME_OPBGN_TM || null,
-        operCloseHhmm: matchedShelter.OPER_TIME_OPEND_TM || null,
-        closeDay: matchedShelter.RSTDE_GUID_CN || null,
-        vetPersonCnt: matchedShelter.VET_STAF_CO || null,
-        specsPersonCnt: matchedShelter.SBSCP_STAF_CO || null,
-        latitude: matchedShelter.REFINE_WGS84_LAT || null,
-        longitude: matchedShelter.REFINE_WGS84_LOGT || null,
-        shelterCapacity: matchedShelter.ACEPTNC_ABLTY_CNT || null, // ⭐ 수용 가능 마리 수
-        currentAnimals: group.animals.length,
-        statusBreakdown: group.statusBreakdown,
-      };
+      shelterArray.push({
+        info: {
+          ...group.info,
+          jibunAddr: matchedShelter.JIBUN_ADDR || null,
+          divisionNm: matchedShelter.ENTRPS_NM || null,
+          saveTrgetAnimal: matchedShelter.ANIMAL_HDLG_KND_NM || null,
+          operOpenHhmm: matchedShelter.OPER_TIME_OPBGN_TM || null,
+          operCloseHhmm: matchedShelter.OPER_TIME_OPEND_TM || null,
+          closeDay: matchedShelter.RSTDE_GUID_CN || null,
+          vetPersonCnt: matchedShelter.VET_STAF_CO || null,
+          specsPersonCnt: matchedShelter.SBSCP_STAF_CO || null,
+          latitude: matchedShelter.REFINE_WGS84_LAT || null,
+          longitude: matchedShelter.REFINE_WGS84_LOGT || null,
+          shelterCapacity,
+          currentAnimals: group.animals.length,
+          statusBreakdown: group.statusBreakdown,
+          animals: group.animals,
+        },
+      });
     } else {
       // 경기도 API에 없는 보호소 (다른 지역)
-      group.info = {
-        careNm: group.info.careNm,
-        careTel: group.info.careTel,
-        careAddr: group.info.careAddr,
-        orgNm: group.info.orgNm,
-        jibunAddr: null,
-        divisionNm: null,
-        saveTrgetAnimal: null,
-        operOpenHhmm: null,
-        operCloseHhmm: null,
-        closeDay: null,
-        vetPersonCnt: null,
-        specsPersonCnt: null,
-        latitude: null,
-        longitude: null,
-        shelterCapacity: null,
-        currentAnimals: group.animals.length,
-        statusBreakdown: group.statusBreakdown,
-      };
+      shelterArray.push({
+        info: {
+          careNm: group.info.careNm,
+          careTel: group.info.careTel,
+          careAddr: group.info.careAddr,
+          orgNm: group.info.orgNm,
+          jibunAddr: null,
+          divisionNm: null,
+          saveTrgetAnimal: null,
+          operOpenHhmm: null,
+          operCloseHhmm: null,
+          closeDay: null,
+          vetPersonCnt: null,
+          specsPersonCnt: null,
+          latitude: null,
+          longitude: null,
+          shelterCapacity,
+          currentAnimals: group.animals.length,
+          statusBreakdown: group.statusBreakdown,
+          animals: group.animals,
+        },
+      });
     }
-
-    shelterArray.push(group);
   }
 
   // RTDB 저장
@@ -560,10 +593,8 @@ async function dailyUpdate() {
   console.log("=".repeat(60) + "\n");
 }
 
+
 // ========== 실행 ==========
 
-// 초기 데이터 수집 실행 (최초 1회만)
-// initialDataCollection();
-
-// 일일 업데이트 실행 (기본)
+// 일일 업데이트 실행
 dailyUpdate();

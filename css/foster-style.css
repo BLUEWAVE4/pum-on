@@ -53,23 +53,72 @@
     display: block;
 }
 
+.dashboard-flex {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    gap: 15px;
+}
+
+.dashboard-flex > div {
+    flex: 1;
+}
+
+.dashboard-chart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg--smokey);
+    border-radius: 12px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    list-style: none;
+    gap: 15px;
+}
+
 .dashboard-card {
-    border: 1px solid black;
-    width: 380px;
-    height: 200px;
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     text-align: center;
     border-radius: 12px;
-    border-color: var(--border--color);
-    padding-top: 25px;
+    border: 1px solid var(--border--color);
+    padding: 20px;
     background: linear-gradient(to right, var(--color--primary), var(--color--primary__dark));
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.dashboard-card>strong {
-    font-size: 50px;
+.dashboard-card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-card-red {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: 12px;
+    border: 1px solid var(--border--color);
+    padding: 20px;
+    background: linear-gradient(to right, var(--color--primary), red);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card-red:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-card>strong,
+.dashboard-card-red>strong {
+    font-size: 40px;
     height: 70%;
+    margin-top: 14px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -121,21 +170,77 @@
     border: 1px solid var(--border--color);
     border-radius: var(--border-radius__card);
     padding: 16px;
-    background-color: var(--border--color);
+    background-color: var(--bg--common);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.foster-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-color: var(--color--primary);
 }
 
 .foster-pagenation {
-    margin-top: 80px;
+    margin-top: 40px;
     display: flex;
     justify-content: center;
-    gap: 20px;
+    align-items: center;
+    gap: 8px;
+}
+
+.foster-pagenation a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: var(--bg--common);
+    border: 1px solid var(--border--color);
+    color: var(--color--text);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.foster-pagenation a:hover {
+    background-color: var(--color--primary);
+    border-color: var(--color--primary);
+    color: white;
+    text-decoration: none;
 }
 
 .foster-controller {
     display: flex;
     list-style: none;
-    gap: 12px;
-    font-weight: bold;
+    gap: 8px;
+}
+
+.foster-controller li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: var(--bg--common);
+    border: 1px solid var(--border--color);
+    color: var(--color--text);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.foster-controller li:hover {
+    background-color: var(--color--primary__sub);
+    border-color: var(--color--primary);
+    color: var(--color--primary__dark);
+}
+
+.foster-controller li.active {
+    background-color: var(--color--primary);
+    border-color: var(--color--primary);
+    color: white;
 }
 
 .card-title {
@@ -150,26 +255,29 @@
 }
 
 .card-icon {
-    border: 1px solid var(--border--color);
     font-size: 12px;
 }
 
 .icon-red {
-    background-color: red;
+    display: inline-block;
+    background-color: #e53935;
     border-radius: 50px;
-    padding: 8px;
+    padding: 6px 12px;
     text-align: center;
     color: white;
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.3);
     font-weight: 500;
 }
 
 .icon-blue {
+    display: inline-block;
     background-color: var(--color--primary);
     border-radius: 50px;
-    padding: 8px;
+    padding: 6px 12px;
     text-align: center;
     color: white;
     font-weight: 500;
+    box-shadow: 0 2px 4px rgba(102, 115, 255, 0.3);
 }
 
 /* 긴급 지원이 필요한 보호소 영역 */

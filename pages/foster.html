@@ -26,7 +26,7 @@
           <li><a href="../index.html">홈</a></li>
           <li><a href="./shelter">보호소</a></li>
           <li><a href="/animal">입양동물</a></li>
-          <li><a href="./foster.html">임시보호자</a></li>
+          <li><a href="./foster.html" class="active">임시보호자</a></li>
         </ul>
       </nav>
 
@@ -45,14 +45,20 @@
         <span class="dashboard-line"></span>
         <h3>임시보호자 현황 대시보드</h3>
       </div>
-      <!-- 임시보호자 현황 대시보드 : 카드리스트 영역(flex) -->
-      <div>
-        <ul class="dashboard-flex">
-          <li class="dashboard-card">등록된 임시보호자(명)<br><strong id="api-foster-total">0</strong></li>
-          <li class="dashboard-card">임시 보호 중인 동물 수(마리)<br><strong id="api-animal-total">0</strong></li>
-          <li class="dashboard-card">긴급 지원 가능 보호자(명)<br><strong id="api-foster-emergency">0</strong></li>
-          <li class="dashboard-card">긴급 지원이 필요한 동물 수(마리)<br><strong id="api-animal-emergency">0</strong></li>
-        </ul>
+      <div class="dashboard-flex">
+        <!-- 임시보호자 현황 대시보드 : 카드리스트 영역(flex) -->
+        <div>
+          <ul class="dashboard-grid">
+            <li class="dashboard-card">등록된 임시보호자<br><strong id="api-foster-total"></strong></li>
+            <li class="dashboard-card">임시 보호중<br><strong id="api-foster-total">0</strong></li>
+            <li class="dashboard-card-red">긴급지원 보호자<br><strong id="api-animal-emergency">0</strong></li>
+            <li class="dashboard-card-red">긴급지원 필요 동물 수<br><strong id="api-animal-emergency">0</strong></li>
+          </ul>
+        </div>
+        <!-- Chart.js -->
+        <div class="dashboard-chart">
+          <canvas id="fosterChart" width="400" height="200"></canvas>
+        </div>
       </div>
     </div>
 
@@ -205,106 +211,6 @@
         </div>
       </div>
     </div>
-    <!-- 긴급 지원이 필요한 보호소 -->
-    <div class="shelter-container">
-      <!-- 임시보호자 현황 대시보드 : 텍스트 영역 -->
-      <div class="shelter-title">
-        <span class="dashboard-line"></span>
-        <h3>긴급 지원이 필요한 보호소</h3>
-      </div>
-      <p class="shelter-text">이 보호소들이 현재 도움이 필요한 상태입니다. 임시보호로 위기를 함께 극복해주세요.</p>
-      <!-- 보호소 카드 영역 -->
-      <div class="shelter-flex">
-        <div class="shelter-card">
-          <div class="shelter-card-top">
-            <div class="shelter-icon"></div>
-            <img class="shelter-img" src="../assets/images/foster-shelter-img.png" alt="보호소 건물사진">
-          </div>
-          <div>
-            <h4 class="shelter-name">보호소 이름</h4>
-            <p class="shelter-address">보호소 주소</p>
-            <!-- 그래프 -->
-            <div class="shelter-graph">
-              <span></span>
-              <div></div>
-            </div>
-            <div class="shelter-flex-num">
-              <div>50</div>
-              <div>100</div>
-              <div>50</div>
-            </div>
-            <div class="shelter-flex-text">
-              <div>보호중</div>
-              <div>최대 수용</div>
-              <div>남은수</div>
-            </div>
-          </div>
-        </div>
-        <div class="shelter-card">
-          <div class="shelter-card-top">
-            <div class="shelter-icon"></div>
-            <img class="shelter-img" src="../assets/images/foster-shelter-img.png" alt="보호소 건물사진">
-          </div>
-          <div>
-            <h4 class="shelter-name">보호소 이름</h4>
-            <p class="shelter-address">보호소 주소</p>
-            <!-- 그래프 -->
-            <div class="shelter-graph">
-              <span></span>
-              <div></div>
-            </div>
-            <div class="shelter-flex-num">
-              <div>50</div>
-              <div>100</div>
-              <div>50</div>
-            </div>
-            <div class="shelter-flex-text">
-              <div>보호중</div>
-              <div>최대 수용</div>
-              <div>남은수</div>
-            </div>
-          </div>
-        </div>
-        <div class="shelter-card">
-          <div class="shelter-card-top">
-            <div class="shelter-icon"></div>
-            <img class="shelter-img" src="../assets/images/foster-shelter-img.png" alt="보호소 건물사진">
-          </div>
-          <div>
-            <h4 class="shelter-name">보호소 이름</h4>
-            <p class="shelter-address">보호소 주소</p>
-            <!-- 그래프 -->
-            <div class="shelter-graph">
-              <span></span>
-              <div></div>
-            </div>
-            <div class="shelter-flex-num">
-              <div>50</div>
-              <div>100</div>
-              <div>50</div>
-            </div>
-            <div class="shelter-flex-text">
-              <div>보호중</div>
-              <div>최대 수용</div>
-              <div>남은수</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- 임시보호 안내사항 -->
-      <div class="shelter-info">
-        <div class="info-card">
-          <h4>임시보호로 도울 수 있어요</h6>
-            <ul class="info-list">
-              <li>1~3개월 단기 임시보호로 보호소 공간 확보</li>
-              <li>안락사 위기의 동물들에게 새로운 기회 제공</li>
-              <li>임시보호 중 영구 입양 연결 가능</li>
-              <li>보호소에서 사료 및 기본 의료 지원</li>
-            </ul>
-        </div>
-      </div>
-
-
   </main>
 
   <footer class="site-footer">
@@ -321,11 +227,7 @@
   </footer>
 
   <!-- 개발 로컬 테스트 -->
-  <script>
-
-
-
-  </script>
+  <script type="module" src="../js/api-index.js"></script>
 </body>
 
 </html>
