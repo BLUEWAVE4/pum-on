@@ -75,23 +75,31 @@ a:hover {
   list-style: none;
   display: flex;
   gap: 40px;
+  position: relative;
 }
 
 .main-nav .nav-list a {
   padding: 8px 0;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  font-size: 18px;
+  transition: color 0.2s ease;
 }
 
 .main-nav .nav-list a:hover {
   text-decoration: none;
   color: var(--color--primary);
-  border-bottom-color: var(--color--primary);
 }
 
 .main-nav .nav-list a.active {
   color: var(--color--primary);
-  border-bottom-color: var(--color--primary);
+}
+
+.nav-underline {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--color--primary);
+  transition: left 0.3s ease, width 0.3s ease;
+  pointer-events: none;
 }
 
 .auth-actions {
