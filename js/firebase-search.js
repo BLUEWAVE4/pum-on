@@ -144,7 +144,7 @@ async function getRescuedAnimals(yearMonth, day) {
             console.log(`[${idx + 1}] ${animal.kindCd || "미상"}`);
             console.log(`   보호소: ${animal.careNm || "미상"}`);
             console.log(`   전화번호: ${animal.careTel || "미상"}`);
-            console.log(`   최대수용수: ${animal.shelterCapacity || "미확인"}`);
+            console.log(`   최대수용수: ${animal.ACEPTNC_ABLTY_CNT || "미확인"}`);
             console.log(`   상태: ${animal.processState || "미상"}\n`);
         });
 

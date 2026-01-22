@@ -49,9 +49,9 @@
         <!-- 임시보호자 대시보드 : 카드리스트 영역(flex) -->
         <div>
           <ul class="dashboard-grid">
-            <li class="dashboard-card">등록된 임시보호자<br><strong id="api-foster-total"></strong></li>
-            <li class="dashboard-card">임시 보호중<br><strong id="api-foster-total">0</strong></li>
-            <li class="dashboard-card-red">긴급지원 보호자<br><strong id="api-animal-emergency">0</strong></li>
+            <li class="dashboard-card">등록된 임시보호자<br><strong id="api-foster-total">0</strong></li>
+            <li class="dashboard-card">임시 보호중<br><strong id="api-foster-animal">0</strong></li>
+            <li class="dashboard-card-red">긴급지원 보호자<br><strong id="api-foster-emergency">0</strong></li>
             <li class="dashboard-card-red">긴급지원 필요 동물 수<br><strong id="api-animal-emergency">0</strong></li>
           </ul>
         </div>
@@ -111,98 +111,115 @@
       <!-- 활동 중인 임시보호자 : 카드리스트 영역(Grid) -->
       <div>
         <!-- 카드 영역(상세내용) -->
-        <div class="foster-list">
-          <div class="foster-card">
-            <h4 class="card-title">김OO</h4>
-            <div class="card-content">
-              <p>주소정보</p>
-              <p>가능 동물</p>
-              <p>가능 기간</p>
-              <p>연락처</p>
-              <p>기타 등등</p>
-              <p>기타 등등</p>
-            </div>
-            <div class="card-icon">
-              <span class="icon-red">긴급 지원 가능</span>
-              <span class="icon-blue">경력 1년</span>
-            </div>
+        <div class="foster-wrapper">
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
-          <div class="foster-card">
-            <h4 class="card-title">김OO</h4>
-            <div class="card-content">
-              <p>주소정보</p>
-              <p>가능 동물</p>
-              <p>가능 기간</p>
-              <p>연락처</p>
-              <p>기타 등등</p>
-              <p>기타 등등</p>
-            </div>
-            <div class="card-icon">
-              <span class="icon-red">긴급 지원 가능</span>
-              <span class="icon-blue">경력 1년</span>
-            </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
-          <div class="foster-card">
-            <h4 class="card-title">김OO</h4>
-            <div class="card-content">
-              <p>주소정보</p>
-              <p>가능 동물</p>
-              <p>가능 기간</p>
-              <p>연락처</p>
-              <p>기타 등등</p>
-              <p>기타 등등</p>
-            </div>
-            <div class="card-icon">
-              <span class="icon-red">긴급 지원 가능</span>
-              <span class="icon-blue">경력 1년</span>
-            </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
-          <div class="foster-card">
-            <h4 class="card-title">김OO</h4>
-            <div class="card-content">
-              <p>주소정보</p>
-              <p>가능 동물</p>
-              <p>가능 기간</p>
-              <p>연락처</p>
-              <p>기타 등등</p>
-              <p>기타 등등</p>
-            </div>
-            <div class="card-icon">
-              <span class="icon-red">긴급 지원 가능</span>
-              <span class="icon-blue">경력 1년</span>
-            </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
-          <div class="foster-card">
-            <h4 class="card-title">김OO</h4>
-            <div class="card-content">
-              <p>주소정보</p>
-              <p>가능 동물</p>
-              <p>가능 기간</p>
-              <p>연락처</p>
-              <p>기타 등등</p>
-              <p>기타 등등</p>
-            </div>
-            <div class="card-icon">
-              <span class="icon-red">긴급 지원 가능</span>
-              <span class="icon-blue">경력 1년</span>
-            </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
-        </div>
-        <div>
-          <!-- 페이지 컨트롤러 -->
-          <div class="foster-pagenation">
-            <a href="#">&lt;</a>
-            <ul class="foster-controller">
-              <li>1</li>
-              <li>2</li>
-              <li>3</li>
-              <li>4</li>
-              <li>5</li>
-            </ul>
-            <a href="#">></a>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
           </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
+          </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
+          </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
+          </div>
+          <div class="foster-list">
+            <strong class="list-title">김OO</strong>
+            <span>주소정보</span>
+            <span>가능 동물</span>
+            <span>가능 기간</span>
+            <span>연락처</span>
+            <span>기타 등등</span>
+            <span>기타 등등</span>
+          </div>
+
         </div>
       </div>
+      <div>
+        <!-- 페이지 컨트롤러 -->
+        <div class="foster-pagenation">
+          <a href="#">&lt;</a>
+          <ul class="foster-controller">
+            <li>1</li>
+            <li>2</li>
+            <li>3</li>
+            <li>4</li>
+            <li>5</li>
+          </ul>
+          <a href="#">></a>
+        </div>
+      </div>
+    </div>
     </div>
   </main>
 

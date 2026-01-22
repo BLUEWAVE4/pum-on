@@ -3,22 +3,6 @@ import { ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-dat
 
 // ========== Firebase 데이터 조회 함수 ==========
 
-// 보호소 메타 정보 가져오기
-async function getSheltersMeta() {
-    try {
-        const metaRef = ref(db, "rescuedAnimals/shelters/meta");
-        const snapshot = await get(metaRef);
-        
-        
-        if (snapshot.exists()) {
-            return snapshot.val();
-        }
-        return null;
-    } catch (error) {
-        console.error("shelters meta 조회 오류:", error);
-        return null;
-    }
-}
 
 // 전체 임시보호자 목록 가져오기
 async function getAllFosters() {
@@ -26,7 +10,7 @@ async function getAllFosters() {
         const fostersRef = ref(db, "rescuedAnimals/fosters/list");
         const snapshot = await get(fostersRef);
         
-
+        
         if (snapshot.exists()) {
             return snapshot.val();
         }
@@ -43,6 +27,8 @@ async function getAllFosters() {
 async function updateDashboardCards() {
     // TODO: 임시보호자 데이터 연동 시 구현
     document.getElementById('api-foster-total').textContent = '0';
+    document.getElementById('api-foster-animal').textContent = '0';
+    document.getElementById('api-foster-emergency').textContent = '0';
     document.getElementById('api-animal-emergency').textContent = '0';
 
     console.log("대시보드 업데이트 완료");

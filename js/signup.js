@@ -1,13 +1,13 @@
 // Firebase 프로젝트 연동에 필요한 정보 초기화
 const firebaseConfig = {
-  apiKey: "AIzaSyAd8SAQ0KtmsTPr9Fgw7-NxRtZNYt6O0q4",
-  authDomain: "pum-on.firebaseapp.com",
-  projectId: "pum-on",
-  storageBucket: "pum-on.firebasestorage.app",
-  messagingSenderId: "530653242737",
-  appId: "1:530653242737:web:b18a4ab43132aed1ab42d0",
-  measurementId: "G-4PC46EPXM2",
-  databaseURL: "https://pum-on-default-rtdb.firebaseio.com/"
+  apiKey: "AIzaSyAt--9h09hNdT2TWbggtLDUdAtFPAmy7zs",
+  authDomain: "pum--on.firebaseapp.com",
+  databaseURL: "https://pum--on-default-rtdb.firebaseio.com",
+  projectId: "pum--on",
+  storageBucket: "pum--on.firebasestorage.app",
+  messagingSenderId: "248020913979",
+  appId: "1:248020913979:web:83057bd1d0784f3f62b11e",
+  measurementId: "G-25ZZ8NW2C5"
 };
 
 // Initialize Firebase (객체생성)
@@ -88,7 +88,7 @@ selectShelterBtn.addEventListener("click", () => {
   selectedUserType = 'shelter';
   shelterBox.classList.remove("hidden");
   fosterBox.classList.add("hidden");
-  console.log("보호소버튼클릭완료",selectedUserType);
+  console.log("보호소버튼클릭완료", selectedUserType);
 });
 
 // Step 2: 회원가입 함수
@@ -149,7 +149,7 @@ selectFosterBtn.addEventListener("click", () => {
   selectedUserType = 'foster';
   fosterBox.classList.remove("hidden");
   shelterBox.classList.add("hidden");
-  console.log("개인버튼클릭완료",selectedUserType);
+  console.log("개인버튼클릭완료", selectedUserType);
 });
 
 // Step 2: 회원가입 함수
@@ -208,8 +208,8 @@ const signUpFoster = async () => {
         maxPeriod: document.querySelector('input[name="user-period"]:checked').value,
         preferAnimals: preferAnimals,
         preferSizes: preferSizes,
-        experience : document.querySelector('input[name="user-experience"]:checked').value,
-        experienceYears : experienceYears,
+        experience: document.querySelector('input[name="user-experience"]:checked').value,
+        experienceYears: experienceYears,
         specialCare: specialCare, // 선택사항 없으면 빈배열로 저장
         cert: document.querySelector('input[name="user-cert"]:checked').value,
         certNumber: userCertNmEl.value,

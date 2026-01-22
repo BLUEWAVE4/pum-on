@@ -170,16 +170,15 @@
     font-weight: 500;
 }
 
-.foster-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    /* 카드 사이의 간격 */
-    gap: 20px;
-    padding: 20px 0px 20px 0px;
+.foster-wrapper {
+    margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-.foster-card {
-    border: 1px solid var(--border--color);
+.foster-list {
+    border: 0.5px solid var(--border--color);
     border-radius: var(--border-radius__card);
     padding: 16px;
     background-color: var(--bg--common);
@@ -187,8 +186,7 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.foster-card:hover {
-    transform: translateY(-4px);
+.foster-list:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
     border-color: var(--color--primary);
 }
@@ -257,13 +255,6 @@
 
 .card-title {
     margin: 8px 0px 8px 0px;
-}
-
-.card-content {
-    margin: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
 }
 
 .card-icon {

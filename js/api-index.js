@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { ref, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const PROXY_BASE = "http://127.0.0.1:8787";
 
@@ -227,6 +227,91 @@ function createGyeonggiShelterMap(gyeonggiShelters) {
   return shelterMap;
 }
 
+// 전국 보호소 API 조회 (animalShelterSrvc_v2)
+const fetchNationalShelterAPI = async () => {
+  const API_KEY = "35a34e22a23d55be2e0b3c03a3b6cd3ce7fa2391c15cce9467c50353fe26c724";
+  const numOfRows = 1000;
+  let totalBytes = 0;
+  const allShelters = [];
+
+  console.log("📡 전국 보호소 API 조회 중...");
+
+  // 첫 번째 요청으로 totalCount 확인
+  const firstParams = new URLSearchParams({
+    serviceKey: API_KEY,
+    _type: "json",
+    pageNo: 1,
+    numOfRows: 1,
+  });
+
+  try {
+    const firstRes = await fetch(`${PROXY_BASE}/api/shelterInfo_v2?${firstParams}`, {
+      method: "GET",
+    });
+
+    if (!firstRes.ok) {
+      console.log("⚠️  전국 보호소 API 조회 실패");
+      return { shelters: [], bytes: 0 };
+    }
+
+    const firstText = await firstRes.text();
+    totalBytes += new Blob([firstText]).size;
+    const firstData = JSON.parse(firstText);
+    const totalCount = firstData.response?.body?.totalCount || 0;
+    const totalPages = Math.ceil(totalCount / numOfRows);
+
+    console.log(`   📊 전국 보호소 총 ${totalCount}개 (${totalPages} 페이지)`);
+
+    if (totalCount === 0) {
+      return { shelters: [], bytes: totalBytes };
+    }
+
+    // 모든 페이지 데이터 조회
+    for (let pageNo = 1; pageNo <= totalPages; pageNo++) {
+      const params = new URLSearchParams({
+        serviceKey: API_KEY,
+        _type: "json",
+        pageNo,
+        numOfRows,
+      });
+
+      const res = await fetch(`${PROXY_BASE}/api/shelterInfo_v2?${params}`, {
+        method: "GET",
+      });
+
+      if (!res.ok) continue;
+
+      const resText = await res.text();
+      totalBytes += new Blob([resText]).size;
+      const data = JSON.parse(resText);
+      const items = data.response?.body?.items?.item || [];
+      allShelters.push(...(Array.isArray(items) ? items : [items]));
+    }
+
+    console.log(`   ✅ 전국 보호소 ${allShelters.length}개 조회 완료`);
+    return { shelters: allShelters, bytes: totalBytes };
+
+  } catch (error) {
+    console.error("전국 보호소 API 에러:", error);
+    return { shelters: [], bytes: 0 };
+  }
+};
+
+// 전국 보호소 매칭 맵 생성 (전화번호 기반)
+function createNationalShelterMap(nationalShelters) {
+  const shelterMap = {};
+
+  for (const shelter of nationalShelters) {
+    const tel = normalizePhoneNumber(shelter.careTel);
+
+    if (!shelterMap[tel] && tel) {
+      shelterMap[tel] = shelter;
+    }
+  }
+
+  return shelterMap;
+}
+
 // ========== Firebase 헬퍼 함수 ==========
 
 async function getLastUpdatedDate() {
@@ -263,10 +348,10 @@ async function updateDataForDate(dateStr) {
 
   console.log(`   ✅ ${animals.length}마리 데이터 수집 완료 (다운로드: ${formatBytes(bytes)})`);
 
-  // shelter API가 없으므로 shelterCapacity는 null로 설정
+  // shelter API가 없으므로 ACEPTNC_ABLTY_CNT는 null로 설정
   const enrichedAnimals = animals.map((animal) => ({
     ...animal,
-    shelterCapacity: null, // 별도 API 없이는 알 수 없음
+    ACEPTNC_ABLTY_CNT: null, // 별도 API 없이는 알 수 없음
   }));
 
   // RTDB 저장
@@ -317,35 +402,20 @@ async function updateShelters() {
     return { bytes: 0 };
   }
 
-  // 기존 shelters에서 shelterCapacity 맵 생성 (전화번호 → capacity)
-  const existingCapacityMap = {};
-  const existingSheltersRef = ref(db, "rescuedAnimals/shelters/list");
-  const existingSnapshot = await get(existingSheltersRef);
-  if (existingSnapshot.exists()) {
-    const existingShelters = existingSnapshot.val();
-    existingShelters.forEach((shelter) => {
-      const tel = normalizePhoneNumber(shelter.info?.careTel);
-      if (tel && shelter.info?.shelterCapacity && shelter.info.shelterCapacity !== "미확인") {
-        existingCapacityMap[tel] = shelter.info.shelterCapacity;
-      }
-    });
-    console.log(`📦 기존 shelterCapacity 로드: ${Object.keys(existingCapacityMap).length}개`);
-  }
+  // 전국 보호소 API 데이터 가져오기 (vetPersonCnt, specsPersonCnt 정보)
+  const { shelters: nationalShelters, bytes: nationalBytes } = await fetchNationalShelterAPI();
+  const nationalShelterMap = createNationalShelterMap(nationalShelters);
+  console.log(`   🗺️  전국 보호소 매칭 맵 생성 완료: ${Object.keys(nationalShelterMap).length}개\n`);
 
-  // 경기도 보호소 API 데이터 가져오기 (기존 capacity가 없는 경우만 매칭)
-  let gyeonggiShelterMap = {};
-  let shelterBytes = 0;
-  const needsMatching = Object.keys(existingCapacityMap).length === 0;
+  // 경기도 보호소 API 데이터 가져오기 (ACEPTNC_ABLTY_CNT 정보)
+  console.log("📡 경기도 보호소 API 조회 중...");
+  const { shelters: gyeonggiShelters, bytes: gyeonggiBytes } = await fetchGyeonggiShelterAPI();
+  console.log(`   ✅ 경기도 보호소 ${gyeonggiShelters.length}개 조회 완료`);
 
-  if (needsMatching) {
-    console.log("📡 경기도 보호소 API 조회 중...");
-    const { shelters: gyeonggiShelters, bytes } = await fetchGyeonggiShelterAPI();
-    shelterBytes = bytes;
-    console.log(`   ✅ 경기도 보호소 API 조회 완료 (다운로드: ${formatBytes(shelterBytes)})`);
-    gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
-  } else {
-    console.log("📦 기존 shelterCapacity 사용 (경기도 API 스킵)");
-  }
+  const gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
+  console.log(`   🗺️  경기도 보호소 매칭 맵 생성 완료: ${Object.keys(gyeonggiShelterMap).length}개`);
+
+  const totalBytes = nationalBytes + gyeonggiBytes;
 
   console.log(`\n📊 보호소별 그룹화 시작...`);
 
@@ -373,11 +443,11 @@ async function updateShelters() {
       };
     }
 
-    // ⭐ 보호소에 있는 동물만 추가 (공고중 + 보호중)
+    // 보호소에 있는 동물만 추가 (공고중 + 보호중)
     // "종료(입양)", "종료(반환)", "종료(자연사)" 등은 제외
     if (!animal.processState.startsWith("종료")) {
-      // 동물 데이터에서 중복 정보 제거 (careNm, careTel, careAddr, orgNm 제거)
-      const { careNm, careTel: tel, careAddr, orgNm, shelterCapacity, ...animalData } = animal;
+      // 동물 데이터에서 중복 정보 제거
+      const { careNm, careTel: tel, careAddr, orgNm, ACEPTNC_ABLTY_CNT, ...animalData } = animal;
 
       shelterGroups[careTel].animals.push(animalData);
 
@@ -392,66 +462,53 @@ async function updateShelters() {
 
   console.log(`✅ 보호소별 그룹화 완료: ${Object.keys(shelterGroups).length}개 보호소\n`);
 
-  // shelter API 없이 동물 데이터에서 추출한 정보만 사용
-  console.log(`🔗 보호소 정보 정리 중...`);
+  // API 매칭하여 추가 정보 병합
+  console.log(`🔗 보호소 API 매칭 중...`);
 
   const shelterArray = [];
+  let nationalMatchedCount = 0;
+  let gyeonggiMatchedCount = 0;
 
   for (const [careTel, group] of Object.entries(shelterGroups)) {
     const normalizedTel = normalizePhoneNumber(careTel);
-    const matchedShelter = gyeonggiShelterMap[normalizedTel];
 
-    // 기존 capacity 우선 사용, 없으면 경기도 API에서, 그것도 없으면 "미확인"
-    const existingCapacity = existingCapacityMap[normalizedTel];
-    const apiCapacity = matchedShelter?.ACEPTNC_ABLTY_CNT;
-    const shelterCapacity = existingCapacity || apiCapacity || "미확인";
+    // 전국 보호소 API 매칭 (vetPersonCnt, specsPersonCnt)
+    const nationalMatch = nationalShelterMap[normalizedTel];
+    // 경기도 보호소 API 매칭 (ACEPTNC_ABLTY_CNT)
+    const gyeonggiMatch = gyeonggiShelterMap[normalizedTel];
 
-    // 경기도 API 데이터가 있으면 추가 정보 병합
-    if (matchedShelter) {
-      shelterArray.push({
-        info: {
-          ...group.info,
-          jibunAddr: matchedShelter.JIBUN_ADDR || null,
-          divisionNm: matchedShelter.ENTRPS_NM || null,
-          saveTrgetAnimal: matchedShelter.ANIMAL_HDLG_KND_NM || null,
-          operOpenHhmm: matchedShelter.OPER_TIME_OPBGN_TM || null,
-          operCloseHhmm: matchedShelter.OPER_TIME_OPEND_TM || null,
-          closeDay: matchedShelter.RSTDE_GUID_CN || null,
-          vetPersonCnt: matchedShelter.VET_STAF_CO || null,
-          specsPersonCnt: matchedShelter.SBSCP_STAF_CO || null,
-          latitude: matchedShelter.REFINE_WGS84_LAT || null,
-          longitude: matchedShelter.REFINE_WGS84_LOGT || null,
-          shelterCapacity,
-          currentAnimals: group.animals.length,
-          statusBreakdown: group.statusBreakdown,
-          animals: group.animals,
-        },
-      });
-    } else {
-      // 경기도 API에 없는 보호소 (다른 지역)
-      shelterArray.push({
-        info: {
-          careNm: group.info.careNm,
-          careTel: group.info.careTel,
-          careAddr: group.info.careAddr,
-          orgNm: group.info.orgNm,
-          jibunAddr: null,
-          divisionNm: null,
-          saveTrgetAnimal: null,
-          operOpenHhmm: null,
-          operCloseHhmm: null,
-          closeDay: null,
-          vetPersonCnt: null,
-          specsPersonCnt: null,
-          latitude: null,
-          longitude: null,
-          shelterCapacity,
-          currentAnimals: group.animals.length,
-          statusBreakdown: group.statusBreakdown,
-          animals: group.animals,
-        },
-      });
-    }
+    if (nationalMatch) nationalMatchedCount++;
+    if (gyeonggiMatch) gyeonggiMatchedCount++;
+
+    // 보호소 정보 구성
+    const shelterInfo = {
+      careNm: group.info.careNm,
+      careTel: group.info.careTel,
+      careAddr: group.info.careAddr,
+      orgNm: group.info.orgNm,
+      vetPersonCnt: nationalMatch?.vetPersonCnt || null,
+      specsPersonCnt: nationalMatch?.specsPersonCnt || null,
+      ACEPTNC_ABLTY_CNT: gyeonggiMatch?.ACEPTNC_ABLTY_CNT || null,
+      currentAnimals: group.animals.length,
+      statusBreakdown: group.statusBreakdown,
+      animals: group.animals,
+    };
+
+    
+    shelterArray.push({ info: shelterInfo });
+  }
+
+  console.log(`📊 매칭 결과:`);
+  console.log(`   - 전국 보호소 API: ${nationalMatchedCount}개 / ${shelterArray.length}개 (vetPersonCnt, specsPersonCnt)`);
+  console.log(`   - 경기도 보호소 API: ${gyeonggiMatchedCount}개 / ${shelterArray.length}개 (ACEPTNC_ABLTY_CNT)\n`);
+
+  // 총 수의사/전문인력 수 집계
+  let totalVetPersonCnt = 0;
+  let totalSpecsPersonCnt = 0;
+
+  for (const shelter of shelterArray) {
+    totalVetPersonCnt += parseInt(shelter.info.vetPersonCnt) || 0;
+    totalSpecsPersonCnt += parseInt(shelter.info.specsPersonCnt) || 0;
   }
 
   // RTDB 저장
@@ -460,12 +517,16 @@ async function updateShelters() {
   await set(ref(db, "rescuedAnimals/shelters/list"), shelterArray);
   await set(ref(db, "rescuedAnimals/shelters/meta"), {
     totalShelters: shelterArray.length,
+    totalVetPersonCnt,
+    totalSpecsPersonCnt,
     lastUpdated: new Date().toISOString(),
   });
 
-  console.log(`✅ Shelters 업데이트 완료: ${shelterArray.length}개 보호소\n`);
+  console.log(`✅ Shelters 업데이트 완료: ${shelterArray.length}개 보호소`);
+  console.log(`   - 총 수의사: ${totalVetPersonCnt}명`);
+  console.log(`   - 총 전문인력: ${totalSpecsPersonCnt}명\n`);
 
-  return { bytes: shelterBytes };
+  return { bytes: totalBytes };
 }
 
 // meta 업데이트
@@ -483,6 +544,48 @@ async function updateMeta(updates) {
 }
 
 // ========== 메인 로직 ==========
+
+// 테스트용 데이터 수집 (3일치)
+async function testDataCollection() {
+  console.log("\n" + "=".repeat(60));
+  console.log("🧪 테스트 데이터 수집 시작 (3일치)");
+  console.log("=".repeat(60) + "\n");
+
+  const today = new Date();
+  const threeDaysAgo = new Date(today);
+  threeDaysAgo.setDate(today.getDate() - 3);
+  let totalBytes = 0;
+
+  console.log(`📅 수집 기간: ${toYYYYMMDD(threeDaysAgo)} ~ ${toYYYYMMDD(today)}\n`);
+
+  // 3일치 일자별로 데이터 수집
+  let currentDate = new Date(threeDaysAgo);
+
+  while (currentDate <= today) {
+    const dateStr = toYYYYMMDD(currentDate);
+    const result = await updateDataForDate(dateStr);
+    if (result) totalBytes += result.bytes;
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // shelters 생성
+  const shelterResult = await updateShelters();
+  if (shelterResult) totalBytes += shelterResult.bytes;
+
+  // meta 업데이트
+  await updateMeta({
+    lastUpdated: new Date().toISOString(),
+    lastUpdatedDate: toYYYYMMDD(today),
+    dataRange: {
+      start: toYYYYMMDD(threeDaysAgo),
+      end: toYYYYMMDD(today),
+    },
+  });
+
+  console.log("\n" + "=".repeat(60));
+  console.log(`✅ 테스트 데이터 수집 완료 (총 다운로드: ${formatBytes(totalBytes)})`);
+  console.log("=".repeat(60) + "\n");
+}
 
 // 초기 데이터 수집 (1년치)
 async function initialDataCollection() {
@@ -540,19 +643,23 @@ async function dailyUpdate() {
   console.log(`📅 마지막 업데이트: ${lastUpdated || "없음"}\n`);
 
   if (!lastUpdated) {
-    console.log("⚠️  마지막 업데이트 정보 없음. shelters 및 meta 초기화 시작...\n");
+    console.log("⚠️  마지막 업데이트 정보 없음. 초기 데이터 수집 시작...\n");
 
-    // shelters 생성 (현재 data에 있는 데이터로부터)
+    // 1. 오늘 데이터 수집
+    const dateResult = await updateDataForDate(todayStr);
+    if (dateResult) totalBytes += dateResult.bytes;
+
+    // 2. shelters 생성 (현재 data에 있는 데이터로부터)
     const shelterResult = await updateShelters();
     if (shelterResult) totalBytes += shelterResult.bytes;
 
-    // meta 초기화
+    // 3. meta 초기화
     await updateMeta({
       lastUpdated: new Date().toISOString(),
       lastUpdatedDate: todayStr,
     });
 
-    console.log(`✅ shelters 및 meta 초기화 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
+    console.log(`✅ 초기 데이터 수집 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
     return;
   }
 
@@ -594,7 +701,25 @@ async function dailyUpdate() {
 }
 
 
-// ========== 실행 ==========
+// ========== RTDB 초기화 함수 ==========
 
-// 일일 업데이트 실행
+// rescuedAnimals 노드 삭제 함수
+async function deleteRescuedAnimals() {
+  console.log("\n" + "=".repeat(60));
+  console.log("🗑️  RTDB rescuedAnimals 노드 삭제 시작");
+  console.log("=".repeat(60) + "\n");
+
+  try {
+    const rescuedAnimalsRef = ref(db, "rescuedAnimals");
+    await remove(rescuedAnimalsRef);
+
+    console.log("✅ rescuedAnimals 노드가 성공적으로 삭제되었습니다.\n");
+    return true;
+  } catch (error) {
+    console.error("❌ 삭제 중 오류 발생:", error);
+    return false;
+  }
+}
+
+// ========== 실행 ==========
 dailyUpdate();

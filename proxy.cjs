@@ -35,8 +35,17 @@ app.get("/api/shelter", async (req, res) => {
   }
 });
 
-// shelter_v2 API는 작동하지 않으므로 제거
-// 대신 abandonmentPublic API에서 보호소 정보를 추출하여 사용
+// 전국 보호소 정보 API 프록시 (animalShelterSrvc_v2)
+app.get("/api/shelterInfo_v2", async (req, res) => {
+  try {
+    const url = "https://apis.data.go.kr/1543061/animalShelterSrvc_v2/shelterInfo_v2?" + new URLSearchParams(req.query).toString();
+    const r = await fetch(url);
+    const text = await r.text();
+    res.status(r.status).send(text);
+  } catch (e) {
+    res.status(500).send(e.toString());
+  }
+});
 
 // 이미지 프록시
 app.get("/img", async (req, res) => {

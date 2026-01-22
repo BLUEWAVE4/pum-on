@@ -49,7 +49,7 @@
             "orgNm": "경기도",
             "chargeNm": "홍길동",
             "officetel": "031-1111-2222",
-            "shelterCapacity": null
+            "ACEPTNC_ABLTY_CNT": null
           }
         ],
         "02": [ /* ... */ ],
@@ -62,6 +62,8 @@
     "shelters": {
       "meta": {
         "totalShelters": 50,
+        "totalVetPersonCnt": 120,
+        "totalSpecsPersonCnt": 350,
         "lastUpdated": "2026-01-21T14:30:00Z"
       },
       "list": [
@@ -80,7 +82,7 @@
             "specsPersonCnt": "5",
             "latitude": "37.2636",
             "longitude": "127.0286",
-            "shelterCapacity": null,
+            "ACEPTNC_ABLTY_CNT": null,
             "currentAnimals": 48,
             "statusBreakdown": {
               "protecting": 30,
@@ -136,10 +138,15 @@
 - **목적**: 현재 보호소 현황 (실시간 상태)
 - **구조**:
   - `meta`: 보호소 메타 정보
+    - `totalShelters`: 전체 보호소 수
+    - `totalVetPersonCnt`: 전체 보호소의 수의사 인원 합계
+    - `totalSpecsPersonCnt`: 전체 보호소의 사육사 인원 합계
+    - `lastUpdated`: 마지막 업데이트 시각
   - `list`: 보호소 배열
 - **특징**:
   - RTDB의 `data` 객체에서 동물 데이터를 읽어 재생성
-  - 경기도 보호소 API와 매칭하여 `shelterCapacity` (ACEPTNC_ABLTY_CNT) 추가
+  - 경기도 보호소 API와 매칭하여 `ACEPTNC_ABLTY_CNT` (수용 가능 마리 수) 추가
+  - 경기도 보호소 API에서 `vetPersonCnt` (수의사 인원), `specsPersonCnt` (사육사 인원) 추가
   - `currentAnimals`: 현재 보호소에 있는 동물 수 (공고중 + 보호중)
   - `statusBreakdown`: 상태별 세부 카운트
   - `animals`: 현재 보호중/공고중인 동물 리스트 (보호소 정보 제외)
@@ -176,14 +183,14 @@ async function initialDataCollection() {
       pageNo: 1
     });
     
-    // shelterCapacity 추가
+    // ACEPTNC_ABLTY_CNT 추가
     const enrichedAnimals = animals.map(animal => {
       const careTel = normalizePhoneNumber(animal.careTel);
       const matchedShelter = shelterMap[careTel];
       
       return {
         ...animal,
-        shelterCapacity: matchedShelter?.ACEPTNC_ABLTY_CNT || null
+        ACEPTNC_ABLTY_CNT: matchedShelter?.ACEPTNC_ABLTY_CNT || null
       };
     });
     
@@ -293,10 +300,10 @@ async function updateDataForDate(dateStr) {
 
   console.log(`   ✅ ${animals.length}마리 데이터 수집 완료`);
 
-  // shelter API가 없으므로 shelterCapacity는 null로 설정
+  // shelter API가 없으므로 ACEPTNC_ABLTY_CNT는 null로 설정
   const enrichedAnimals = animals.map((animal) => ({
     ...animal,
-    shelterCapacity: null, // 별도 API 없이는 알 수 없음
+    ACEPTNC_ABLTY_CNT: null, // 별도 API 없이는 알 수 없음
   }));
 
   // RTDB 저장
@@ -384,7 +391,7 @@ async function updateShelters() {
     // "종료(입양)", "종료(반환)", "종료(자연사)" 등은 제외
     if (!animal.processState.startsWith("종료")) {
       // 동물 데이터에서 중복 정보 제거 (careNm, careTel, careAddr, orgNm 제거)
-      const { careNm, careTel: tel, careAddr, orgNm, shelterCapacity, ...animalData } = animal;
+      const { careNm, careTel: tel, careAddr, orgNm, ACEPTNC_ABLTY_CNT, ...animalData } = animal;
 
       shelterGroups[careTel].animals.push(animalData);
 
@@ -422,7 +429,7 @@ async function updateShelters() {
         specsPersonCnt: matchedShelter.SBSCP_STAF_CO || null,
         latitude: matchedShelter.REFINE_WGS84_LAT || null,
         longitude: matchedShelter.REFINE_WGS84_LOGT || null,
-        shelterCapacity: matchedShelter.ACEPTNC_ABLTY_CNT || null, // ⭐ 수용 가능 마리 수
+        ACEPTNC_ABLTY_CNT: matchedShelter.ACEPTNC_ABLTY_CNT || null, // ⭐ 수용 가능 마리 수
         currentAnimals: group.animals.length,
         statusBreakdown: group.statusBreakdown,
       };
@@ -440,7 +447,7 @@ async function updateShelters() {
         specsPersonCnt: null,
         latitude: null,
         longitude: null,
-        shelterCapacity: null,
+        ACEPTNC_ABLTY_CNT: null,
         currentAnimals: group.animals.length,
         statusBreakdown: group.statusBreakdown,
       };
@@ -454,9 +461,22 @@ async function updateShelters() {
   // RTDB 저장
   console.log(`💾 RTDB 저장 중...`);
 
+  // vetPersonCnt와 specsPersonCnt 합계 계산
+  let totalVetPersonCnt = 0;
+  let totalSpecsPersonCnt = 0;
+
+  for (const shelter of shelterArray) {
+    const vetCnt = parseInt(shelter.info.vetPersonCnt) || 0;
+    const specsCnt = parseInt(shelter.info.specsPersonCnt) || 0;
+    totalVetPersonCnt += vetCnt;
+    totalSpecsPersonCnt += specsCnt;
+  }
+
   await set(ref(db, "rescuedAnimals/shelters/list"), shelterArray);
   await set(ref(db, "rescuedAnimals/shelters/meta"), {
     totalShelters: shelterArray.length,
+    totalVetPersonCnt,
+    totalSpecsPersonCnt,
     lastUpdated: new Date().toISOString(),
   });
 
@@ -607,7 +627,7 @@ function createGyeonggiShelterMap(gyeonggiShelters) {
 - **제거**: `shelter_v2` API (전국 보호소 조회 서비스) - 작동하지 않음
 - **유지**: 경기도 보호소 API (`OrganicAnimalProtectionFacilit`)
 - **영향**:
-  - 경기도 외 지역 보호소는 `shelterCapacity` 및 추가 정보가 `null`
+  - 경기도 외 지역 보호소는 `ACEPTNC_ABLTY_CNT` 및 추가 정보가 `null`
   - 경기도 보호소만 `ACEPTNC_ABLTY_CNT` (수용 가능 마리 수) 매칭 가능
 
 #### 2. Shelters 업데이트 로직 변경
@@ -625,9 +645,9 @@ function createGyeonggiShelterMap(gyeonggiShelters) {
 
 #### 4. 동물 데이터 구조 변경
 - `shelters/list[]/animals` 배열에서 중복 정보 제거
-  - 제거된 필드: `careNm`, `careTel`, `careAddr`, `orgNm`, `shelterCapacity`
+  - 제거된 필드: `careNm`, `careTel`, `careAddr`, `orgNm`, `ACEPTNC_ABLTY_CNT`
   - 이유: `info` 객체에 이미 존재하므로 중복 방지
-- `data` 객체의 동물 데이터는 `shelterCapacity: null`로 저장 (shelter API 없음)
+- `data` 객체의 동물 데이터는 `ACEPTNC_ABLTY_CNT: null`로 저장 (shelter API 없음)
 
 ---
 
@@ -820,10 +840,12 @@ async function getShelterAnimals(careTel) {
     return {
       name: targetShelter.info.careNm,
       currentAnimals: targetShelter.info.currentAnimals,
-      capacity: targetShelter.info.shelterCapacity,
+      capacity: targetShelter.info.ACEPTNC_ABLTY_CNT,
+      vetPersonCnt: targetShelter.info.vetPersonCnt,
+      specsPersonCnt: targetShelter.info.specsPersonCnt,
       occupancyRate: (
-        targetShelter.info.currentAnimals / 
-        targetShelter.info.shelterCapacity * 
+        targetShelter.info.currentAnimals /
+        targetShelter.info.ACEPTNC_ABLTY_CNT *
         100
       ).toFixed(1) + '%',
       animals: targetShelter.info.animals
@@ -869,11 +891,13 @@ async function calculateAllShelterOccupancy() {
   
   const stats = shelters.map(shelter => ({
     name: shelter.info.careNm,
-    capacity: shelter.info.shelterCapacity,
+    capacity: shelter.info.ACEPTNC_ABLTY_CNT,
     current: shelter.info.currentAnimals,
+    vetPersonCnt: shelter.info.vetPersonCnt,
+    specsPersonCnt: shelter.info.specsPersonCnt,
     rate: (
-      shelter.info.currentAnimals / 
-      shelter.info.shelterCapacity * 
+      shelter.info.currentAnimals /
+      shelter.info.ACEPTNC_ABLTY_CNT *
       100
     ).toFixed(1),
     protecting: shelter.info.statusBreakdown.protecting,
@@ -976,9 +1000,9 @@ const unsubscribe = monitorShelter('031-1234-5678', (shelterInfo) => {
   console.log('보호소 업데이트:', shelterInfo.currentAnimals);
   
   // 수용률 80% 이상이면 알림
-  const rate = shelterInfo.currentAnimals / shelterInfo.shelterCapacity;
+  const rate = shelterInfo.currentAnimals / shelterInfo.ACEPTNC_ABLTY_CNT;
   if (rate >= 0.8) {
-    alert(`${shelterInfo.careNm} 수용률 ${(rate * 100).toFixed(1)}% - 포화 상태!`);
+    alert(`${shelterInfo.careNm} 수용률 ${(rate * 100).toFixed(1)}% - 포화 상태! (수의사: ${shelterInfo.vetPersonCnt}명, 사육사: ${shelterInfo.specsPersonCnt}명)`);
   }
 });
 
@@ -1143,18 +1167,19 @@ export const updateSheltersScheduled = onSchedule(
 - **목적**: 과거 이력 및 통계 분석
 - **특징**: 한번 저장하면 수정 안 함
 - **업데이트**: 매일 오늘 날짜 데이터만 추가
-- **shelterCapacity**: `null` (별도 shelter API 없음)
+- **ACEPTNC_ABLTY_CNT**: `null` (별도 shelter API 없음)
 
 ### rescuedAnimals/shelters (현재 상태)
 - **목적**: 실시간 보호소 현황
 - **데이터 소스**: RTDB의 `rescuedAnimals/data` 객체
 - **업데이트**: 매일 RTDB 데이터 기반으로 전체 재생성
-- **경기도 보호소**: `shelterCapacity` (ACEPTNC_ABLTY_CNT) 매칭 가능
+- **경기도 보호소**: `ACEPTNC_ABLTY_CNT` (수용 가능 마리 수), `vetPersonCnt` (수의사 인원), `specsPersonCnt` (사육사 인원) 매칭 가능
 - **다른 지역 보호소**: 추가 정보 `null`
+- **meta 정보**: 전체 보호소 수, 전체 수의사 인원 합계, 전체 사육사 인원 합계 포함
 
 ### 동물 데이터 구조
 - **data 객체**: 전체 동물 정보 (보호소 정보 포함)
-- **shelters/list[]/animals**: 중복 정보 제거 (careNm, careTel, careAddr, orgNm, shelterCapacity 제외)
+- **shelters/list[]/animals**: 중복 정보 제거 (careNm, careTel, careAddr, orgNm, ACEPTNC_ABLTY_CNT 제외)
 
 ### currentAnimals 계산
 - 공고중 + 보호중 = currentAnimals
