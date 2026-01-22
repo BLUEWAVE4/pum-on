@@ -234,7 +234,7 @@ const fetchNationalShelterAPI = async () => {
   let totalBytes = 0;
   const allShelters = [];
 
-  console.log("📡 전국 보호소 API 조회 중...");
+  // console.log("📡 전국 보호소 API 조회 중...");
 
   // 첫 번째 요청으로 totalCount 확인
   const firstParams = new URLSearchParams({
@@ -260,7 +260,7 @@ const fetchNationalShelterAPI = async () => {
     const totalCount = firstData.response?.body?.totalCount || 0;
     const totalPages = Math.ceil(totalCount / numOfRows);
 
-    console.log(`   📊 전국 보호소 총 ${totalCount}개 (${totalPages} 페이지)`);
+    // console.log(`   📊 전국 보호소 총 ${totalCount}개 (${totalPages} 페이지)`);
 
     if (totalCount === 0) {
       return { shelters: [], bytes: totalBytes };
@@ -288,7 +288,7 @@ const fetchNationalShelterAPI = async () => {
       allShelters.push(...(Array.isArray(items) ? items : [items]));
     }
 
-    console.log(`   ✅ 전국 보호소 ${allShelters.length}개 조회 완료`);
+    // console.log(`   ✅ 전국 보호소 ${allShelters.length}개 조회 완료`);
     return { shelters: allShelters, bytes: totalBytes };
 
   } catch (error) {
@@ -336,7 +336,7 @@ async function checkDateExists(yearMonth, day) {
 async function updateDataForDate(dateStr) {
   const [yyyymm, dd] = [dateStr.slice(0, 6), dateStr.slice(6, 8)];
 
-  console.log(`\n📅 ${dateStr} 데이터 수집 중...`);
+  // console.log(`\n📅 ${dateStr} 데이터 수집 중...`);
 
   // 해당 날짜 동물 데이터 조회
   const { animals, bytes } = await fetchResqueAnimal(dateStr);
@@ -357,14 +357,14 @@ async function updateDataForDate(dateStr) {
   // RTDB 저장
   await set(ref(db, `rescuedAnimals/data/${yyyymm}/${dd}`), enrichedAnimals);
 
-  console.log(`   💾 RTDB 저장 완료 (rescuedAnimals/data/${yyyymm}/${dd})`);
+  // console.log(`   💾 RTDB 저장 완료 (rescuedAnimals/data/${yyyymm}/${dd})`);
 
   return { bytes };
 }
 
 // RTDB에서 데이터 읽어오기
 async function getAllAnimalsFromRTDB() {
-  console.log("📦 RTDB에서 기존 데이터 읽는 중...");
+  // console.log("📦 RTDB에서 기존 데이터 읽는 중...");
 
   const dataRef = ref(db, "rescuedAnimals/data");
   const snapshot = await get(dataRef);
@@ -386,13 +386,13 @@ async function getAllAnimalsFromRTDB() {
     }
   }
 
-  console.log(`✅ RTDB에서 ${allAnimals.length}마리 데이터 로드 완료\n`);
+  // console.log(`✅ RTDB에서 ${allAnimals.length}마리 데이터 로드 완료\n`);
   return allAnimals;
 }
 
 // shelters 업데이트 로직 (RTDB 데이터 기반)
 async function updateShelters() {
-  console.log("\n🏥 Shelters 업데이트 시작...\n");
+  // console.log("\n🏥 Shelters 업데이트 시작...\n");
 
   // RTDB에서 기존 데이터 가져오기 (API 호출 대신)
   const allCurrentAnimals = await getAllAnimalsFromRTDB();
@@ -405,19 +405,19 @@ async function updateShelters() {
   // 전국 보호소 API 데이터 가져오기 (vetPersonCnt, specsPersonCnt 정보)
   const { shelters: nationalShelters, bytes: nationalBytes } = await fetchNationalShelterAPI();
   const nationalShelterMap = createNationalShelterMap(nationalShelters);
-  console.log(`   🗺️  전국 보호소 매칭 맵 생성 완료: ${Object.keys(nationalShelterMap).length}개\n`);
+  // console.log(`   🗺️  전국 보호소 매칭 맵 생성 완료: ${Object.keys(nationalShelterMap).length}개\n`);
 
   // 경기도 보호소 API 데이터 가져오기 (ACEPTNC_ABLTY_CNT 정보)
-  console.log("📡 경기도 보호소 API 조회 중...");
+  // console.log("📡 경기도 보호소 API 조회 중...");
   const { shelters: gyeonggiShelters, bytes: gyeonggiBytes } = await fetchGyeonggiShelterAPI();
-  console.log(`   ✅ 경기도 보호소 ${gyeonggiShelters.length}개 조회 완료`);
+  // console.log(`   ✅ 경기도 보호소 ${gyeonggiShelters.length}개 조회 완료`);
 
   const gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
-  console.log(`   🗺️  경기도 보호소 매칭 맵 생성 완료: ${Object.keys(gyeonggiShelterMap).length}개`);
+  // console.log(`   🗺️  경기도 보호소 매칭 맵 생성 완료: ${Object.keys(gyeonggiShelterMap).length}개`);
 
   const totalBytes = nationalBytes + gyeonggiBytes;
 
-  console.log(`\n📊 보호소별 그룹화 시작...`);
+  // console.log(`\n📊 보호소별 그룹화 시작...`);
 
   // 보호소별로 그룹화
   const shelterGroups = {};
@@ -460,10 +460,10 @@ async function updateShelters() {
     }
   }
 
-  console.log(`✅ 보호소별 그룹화 완료: ${Object.keys(shelterGroups).length}개 보호소\n`);
+  // console.log(`✅ 보호소별 그룹화 완료: ${Object.keys(shelterGroups).length}개 보호소\n`);
 
   // API 매칭하여 추가 정보 병합
-  console.log(`🔗 보호소 API 매칭 중...`);
+  // console.log(`🔗 보호소 API 매칭 중...`);
 
   const shelterArray = [];
   let nationalMatchedCount = 0;
@@ -498,9 +498,9 @@ async function updateShelters() {
     shelterArray.push({ info: shelterInfo });
   }
 
-  console.log(`📊 매칭 결과:`);
-  console.log(`   - 전국 보호소 API: ${nationalMatchedCount}개 / ${shelterArray.length}개 (vetPersonCnt, specsPersonCnt)`);
-  console.log(`   - 경기도 보호소 API: ${gyeonggiMatchedCount}개 / ${shelterArray.length}개 (ACEPTNC_ABLTY_CNT)\n`);
+  // console.log(`📊 매칭 결과:`);
+  // console.log(`   - 전국 보호소 API: ${nationalMatchedCount}개 / ${shelterArray.length}개 (vetPersonCnt, specsPersonCnt)`);
+  // console.log(`   - 경기도 보호소 API: ${gyeonggiMatchedCount}개 / ${shelterArray.length}개 (ACEPTNC_ABLTY_CNT)\n`);
 
   // 총 수의사/전문인력 수 집계
   let totalVetPersonCnt = 0;
@@ -512,7 +512,7 @@ async function updateShelters() {
   }
 
   // RTDB 저장
-  console.log(`💾 RTDB 저장 중...`);
+  // console.log(`💾 RTDB 저장 중...`);
 
   await set(ref(db, "rescuedAnimals/shelters/list"), shelterArray);
   await set(ref(db, "rescuedAnimals/shelters/meta"), {
@@ -523,8 +523,6 @@ async function updateShelters() {
   });
 
   console.log(`✅ Shelters 업데이트 완료: ${shelterArray.length}개 보호소`);
-  console.log(`   - 총 수의사: ${totalVetPersonCnt}명`);
-  console.log(`   - 총 전문인력: ${totalSpecsPersonCnt}명\n`);
 
   return { bytes: totalBytes };
 }
@@ -630,17 +628,17 @@ async function initialDataCollection() {
 
 // 일일 업데이트 로직
 async function dailyUpdate() {
-  console.log("\n" + "=".repeat(60));
+  // console.log("\n" + "=".repeat(60));
   console.log("🔄 일일 업데이트 시작");
-  console.log("=".repeat(60) + "\n");
+  // console.log("=".repeat(60) + "\n");
 
   const today = new Date();
   const todayStr = toYYYYMMDD(today);
   const lastUpdated = await getLastUpdatedDate();
   let totalBytes = 0;
 
-  console.log(`📅 오늘 날짜: ${todayStr}`);
-  console.log(`📅 마지막 업데이트: ${lastUpdated || "없음"}\n`);
+  // console.log(`📅 오늘 날짜: ${todayStr}`);
+  // console.log(`📅 마지막 업데이트: ${lastUpdated || "없음"}\n`);
 
   if (!lastUpdated) {
     console.log("⚠️  마지막 업데이트 정보 없음. 초기 데이터 수집 시작...\n");
@@ -682,7 +680,7 @@ async function dailyUpdate() {
 
     console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
   } else {
-    console.log("ℹ️  이미 최신 상태입니다. 실시간 업데이트 확인 중...\n");
+    // console.log("ℹ️  이미 최신 상태입니다. 실시간 업데이트 확인 중...\n");
 
     // 오늘 데이터 재수집 (실시간 변경사항 반영)
     const dateResult = await updateDataForDate(todayStr);
@@ -692,12 +690,12 @@ async function dailyUpdate() {
     const shelterResult = await updateShelters();
     if (shelterResult) totalBytes += shelterResult.bytes;
 
-    console.log(`✅ 실시간 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
+    // console.log(`✅ 실시간 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
   }
 
-  console.log("=".repeat(60));
-  console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})`);
-  console.log("=".repeat(60) + "\n");
+  // console.log("=".repeat(60));
+  // console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})`);
+  // console.log("=".repeat(60) + "\n");
 }
 
 
