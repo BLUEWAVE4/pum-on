@@ -57,8 +57,11 @@ db.ref("rescuedAnimals/shelters/list").on("value", snap => {
   const raw = snap.val();
   if (!raw) return;
 
-  rebuildFromShelters(Object.values(raw));
+  // ✅ 순서 변경: 대시보드 데이터 먼저 준비
   prepareDashboardDataFromShelters(Object.values(raw));
+  
+  // ✅ 그 다음 보호소 리스트 구축
+  rebuildFromShelters(Object.values(raw));
 
   const dashboardSection = document.querySelector(".dashboard-section");
   if (dashboardSection) observer.observe(dashboardSection);
@@ -132,6 +135,11 @@ function rebuildFromShelters(shelters) {
   
   currentPage = 1;
   currentGroup = 0;
+
+  // ✅ 화면 업데이트
+  updateShelterTotalCount();
+  renderPage();
+  renderPagination();
 }
 
 /*************************
@@ -139,17 +147,14 @@ function rebuildFromShelters(shelters) {
  *************************/
 function filterOutDashboardShelter() {
   const dashboardShelterName = window.dashboardData?.shelterName;
-
+  
   if (dashboardShelterName) {
     visibleShelters = allShelters.filter(s => s.name !== dashboardShelterName);
+    console.log(`🚫 대시보드 보호소 제외: ${dashboardShelterName}`);
   } else {
     visibleShelters = [...allShelters];
   }
-
-  // 🔥 항상 정렬 보장
-  applySortToVisible();
 }
-
 
 /*************************
  * 5. 필터
@@ -222,6 +227,9 @@ function createShelterList(province = "", city = "") {
   applySortToVisible();
   currentPage = 1;
   currentGroup = 0;
+
+  // ✅ 화면 업데이트
+  updateShelterTotalCount();
   renderPage();
   renderPagination();
 }
@@ -292,6 +300,9 @@ document.querySelectorAll("#sortTags .tag").forEach(btn => {
     applySortToVisible();
     currentPage = 1;
     currentGroup = 0;
+
+    // ✅ 화면 업데이트
+    updateShelterTotalCount();
     renderPage();
     renderPagination();
   });
@@ -303,30 +314,30 @@ document.querySelectorAll("#sortTags .tag").forEach(btn => {
 function getShelterImage(shelterName) {
   // 키워드와 이미지 매핑 (우선순위 순서대로)
   const imageMap = [
-    { keyword: "(사)플러스", image: "asset/img/plus.jpg" },
-    { keyword: "사단법인", image: "asset/img/incorporated_association.jpg" },
-    { keyword: "무주군", image: "asset/img/muju.jpg" },
-    { keyword: "철원군", image: "asset/img/cheolwon.jpg" },
-    { keyword: "수의사회", image: "asset/img/vet.jpg" },
-    { keyword: "구청", image: "asset/img/district.jpg" },
-    { keyword: "훈련소", image: "asset/img/training_center.jpg" },
-    { keyword: "메디컬", image: "asset/img/medical.png" },
-    { keyword: "병원", image: "asset/img/hospital.jpeg" },
-    { keyword: "협회", image: "asset/img/association.jpg" },
-    { keyword: "센터", image: "asset/img/center.jpeg" },
-    { keyword: "보호소", image: "asset/img/shelter.jpg" },
-    { keyword: "축산", image: "asset/img/husbandry.jpg" }
+    { keyword: "(사)플러스", image: "plus.jpg" },
+    { keyword: "사단법인", image: "incorporated_association.jpg" },
+    { keyword: "무주군", image: "muju.jpg" },
+    { keyword: "철원군", image: "cheolwon.jpg" },
+    { keyword: "수의사회", image: "vet.jpg" },
+    { keyword: "구청", image: "district.jpg" },
+    { keyword: "훈련소", image: "training_center.jpg" },
+    { keyword: "메디컬", image: "medical.png" },
+    { keyword: "병원", image: "hospital.jpeg" },
+    { keyword: "협회", image: "association.jpg" },
+    { keyword: "센터", image: "center.jpeg" },
+    { keyword: "보호소", image: "shelter.jpg" },
+    { keyword: "축산", image: "husbandry.jpg" }
   ];
 
   // 첫 번째로 매칭되는 키워드의 이미지 반환
   for (const { keyword, image } of imageMap) {
     if (shelterName.includes(keyword)) {
-      return `${image}`;
+      return `assets/images/${image}`;
     }
   }
 
   // 매칭되는 키워드가 없으면 기본 이미지
-  return "asset/img/shelter.jpg";
+  return "assets/images/shelter.jpg";
 }
 
 /*************************
@@ -341,6 +352,7 @@ function renderPage() {
 
   if (pageItems.length === 0) {
     cardContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; padding:40px;">필터 조건에 맞는 보호소가 없습니다.</p>';
+    updateVisibleAnimalsCount();
     return;
   }
 
@@ -380,6 +392,9 @@ function renderPage() {
       document.getElementById(canvasId).style.display = "none";
     }
   });
+
+  // ✅ 현재 페이지 동물 수 업데이트
+  updateVisibleAnimalsCount();
 }
 
 /*************************
@@ -391,7 +406,13 @@ function renderPagination() {
   // ✅ visibleShelters 기준으로 페이지 계산
   const totalPages = Math.ceil(visibleShelters.length / PAGE_SIZE);
   
-  if (totalPages <= 1) return; // 페이지가 1개 이하면 숨김
+  // ✅ 페이지가 없어도 항상 표시 (공간 유지)
+  if (totalPages === 0) {
+    pagination.style.visibility = 'hidden';
+    return;
+  }
+  
+  pagination.style.visibility = 'visible';
 
   const startPage = currentGroup * PAGE_GROUP_SIZE + 1;
   const endPage = Math.min(startPage + PAGE_GROUP_SIZE - 1, totalPages);
@@ -543,10 +564,10 @@ function initDashboard(data) {
     currentAnimals
   } = data;
 
-  // 제목 업데이트
-  const titleBox = document.querySelector(".title-box h1");
-  if (titleBox) {
-    titleBox.textContent = shelterName;
+  // ✅ 제목 업데이트 (shelterTitle ID 사용)
+  const titleEl = document.getElementById("shelterTitle");
+  if (titleEl) {
+    titleEl.textContent = shelterName;
   }
 
   createGradientDonut("pressureChart", pressure, ["#ef4444", "#f97316"]);
@@ -556,18 +577,24 @@ function initDashboard(data) {
 
   // 값 업데이트
   const values = document.querySelectorAll(".circle-value");
-  values[0].dataset.value = pressure;
-  values[1].dataset.value = localRate;
-  values[2].dataset.value = regionRate;
-  values[3].dataset.value = currentAnimals;
+  if (values.length >= 4) {
+    values[0].dataset.value = pressure;
+    values[1].dataset.value = localRate;
+    values[2].dataset.value = regionRate;
+    values[3].dataset.value = urgency;
+  }
 
   // 레이블 업데이트
   const labels = document.querySelectorAll(".circle span");
-  labels[3].textContent = "입양 시급도";
+  if (labels.length >= 4) {
+    labels[3].textContent = "입양 시급도";
+  }
 
   document.querySelectorAll(".circle-value").forEach(el => {
     animateValue(el, parseFloat(el.dataset.value));
   });
+
+  console.log("✅ 대시보드 차트 초기화 완료");
 }
 
 const observer = new IntersectionObserver(entries => {
@@ -677,24 +704,65 @@ function prepareDashboardDataFromShelters(shelters) {
   // ✅ 보호소 주소 저장
   window.dashboardShelterAddress = targetShelter.careAddr;
 
-  // ✅ content-box 텍스트 렌더링
-  renderShelterInfo(targetShelter);
-
-  // ✅ 지도는 여기서 초기화 (중요)
-  initKakaoMap();
-
   console.log("📊 대시보드 데이터:", window.dashboardData);
   console.log("📍 보호소 주소:", window.dashboardShelterAddress);
+  
+  // ✅ 보호소 정보 렌더링
+  renderShelterInfo(targetShelter);
 
-  // ✅ 대시보드 데이터 설정 후 카드 리스트 다시 필터링
-  if (typeof filterOutDashboardShelter === 'function') {
-    filterOutDashboardShelter();
+  // ✅ 지도 초기화
+  setTimeout(() => {
+    initKakaoMap();
+  }, 500);
+}
 
-    currentPage = 1;
-    currentGroup = 0;
-    renderPage();
-    renderPagination();
-  }
+// ✅ 보호소 정보 렌더링 (새로운 HTML 구조에 맞게)
+function renderShelterInfo(info) {
+  // 제목
+  const titleEl = document.getElementById("shelterTitle");
+  if (titleEl) titleEl.textContent = info.careNm;
+
+  // 보호소 이름
+  const nameEl = document.getElementById("shelterName");
+  if (nameEl) nameEl.textContent = info.careNm;
+
+  // 지역
+  const regionEl = document.getElementById("shelterRegion");
+  if (regionEl) regionEl.textContent = info.orgNm;
+
+  // 주소
+  const addressEl = document.getElementById("shelterAddress");
+  if (addressEl) addressEl.textContent = info.careAddr;
+
+  // 전화번호
+  const phoneEl = document.getElementById("shelterPhone");
+  if (phoneEl) phoneEl.textContent = info.careTel || "정보 없음";
+
+  // 현재 보호 동물 수
+  const countEl = document.getElementById("currentAnimalsCount");
+  if (countEl) countEl.textContent = info.currentAnimals;
+
+  console.log("✅ 보호소 정보 렌더링 완료:", info.careNm);
+}
+
+// ✅ 보호소 카드 리스트 total 기능
+function updateShelterTotalCount() {
+  const countEl = document.getElementById("shelterTotalCount");
+  if (!countEl) return;
+  countEl.textContent = visibleShelters.length;
+}
+
+// ✅ 전체 보호소 기준 동물 수 계산
+function updateVisibleAnimalsCount() {
+  const countEl = document.getElementById("visibleAnimalsCount");
+  if (!countEl) return;
+
+  const totalAnimals = allShelters.reduce(
+    (sum, shelter) => sum + (shelter.current || 0),
+    0
+  );
+
+  countEl.textContent = totalAnimals;
 }
 
 /*************************
@@ -752,40 +820,59 @@ function valueColor(value) {
 /*************************
  * 15. Kakao Map
  *************************/
-let kakaoMapInstance = null;
-
 function initKakaoMap() {
   const mapContainer = document.getElementById("kakaoMap");
-  if (!mapContainer) return;
-
-  if (typeof kakao === "undefined" || !kakao.maps) {
-    setTimeout(initKakaoMap, 500);
+  if (!mapContainer) {
+    console.warn("⚠️ 지도 컨테이너를 찾을 수 없습니다.");
     return;
   }
 
-  mapContainer.innerHTML = "";
+  // ✅ kakao 객체 로드 확인
+  if (typeof kakao === 'undefined' || !kakao.maps) {
+    console.warn("⚠️ 카카오맵 SDK가 아직 로드되지 않았습니다. 1초 후 재시도...");
+    setTimeout(initKakaoMap, 1000);
+    return;
+  }
 
+  console.log("✅ 카카오맵 SDK 로드 완료");
+
+  // 초기 맵 설정 (대한민국 중심)
   const mapOption = {
     center: new kakao.maps.LatLng(36.5, 127.5),
     level: 13
   };
 
-  kakaoMapInstance = new kakao.maps.Map(mapContainer, mapOption);
-
-  // 🔥 핵심: 레이아웃 확정 후 relayout
-  setTimeout(() => {
-    kakaoMapInstance.relayout();
-
-    if (window.dashboardShelterAddress) {
-      displayShelterOnMap(
-        kakaoMapInstance,
-        window.dashboardShelterAddress,
-        window.dashboardData.shelterName
-      );
+  try {
+    const map = new kakao.maps.Map(mapContainer, mapOption);
+    console.log("✅ 카카오맵 생성 완료");
+    
+    // 대시보드 보호소 마커 표시
+    if (window.dashboardData && window.dashboardShelterAddress) {
+      console.log(`📍 마커 표시 시도: ${window.dashboardData.shelterName}`);
+      displayShelterOnMap(map, window.dashboardShelterAddress, window.dashboardData.shelterName);
+    } else {
+      console.log("⏳ 대시보드 데이터 대기 중...");
+      // 데이터가 준비되면 지도 다시 표시
+      const checkInterval = setInterval(() => {
+        if (window.dashboardData && window.dashboardShelterAddress) {
+          clearInterval(checkInterval);
+          console.log(`📍 데이터 로드 완료, 마커 표시: ${window.dashboardData.shelterName}`);
+          displayShelterOnMap(map, window.dashboardShelterAddress, window.dashboardData.shelterName);
+        }
+      }, 500);
+      
+      // 10초 후 타임아웃
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        if (!window.dashboardData) {
+          console.error("❌ 대시보드 데이터 로드 타임아웃");
+        }
+      }, 10000);
     }
-  }, 0);
+  } catch (error) {
+    console.error("❌ 카카오맵 생성 실패:", error);
+  }
 }
-
 
 function displayShelterOnMap(map, address, shelterName) {
   // ✅ kakao 객체 확인
@@ -794,55 +881,74 @@ function displayShelterOnMap(map, address, shelterName) {
     return;
   }
 
+  console.log(`🔍 주소 검색 시작: ${address}`);
+
   // 카카오 주소-좌표 변환 객체 생성
   const geocoder = new kakao.maps.services.Geocoder();
 
   // 주소로 좌표 검색
   geocoder.addressSearch(address, function(result, status) {
+    console.log("📊 주소 검색 결과:", status);
+    
     if (status === kakao.maps.services.Status.OK) {
       const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
 
-      // 마커 생성
-      const marker = new kakao.maps.Marker({
-        map: map,
-        position: coords
-      });
-
-      // 인포윈도우 생성
-      const infowindow = new kakao.maps.InfoWindow({
-        content: `<div style="padding:10px;font-size:14px;font-weight:bold;">${shelterName}</div>`
-      });
-
-      infowindow.open(map, marker);
-
-      // 해당 위치로 지도 중심 이동 및 확대
+      // ✅ 지도 중심 먼저 이동
+      map.setCenter(coords);
       map.setLevel(4);
-      map.relayout();
-      map.panTo(coords);
 
-      console.log(`🗺️ 지도 표시 성공: ${shelterName} (${address})`);
+      // ✅ relayout으로 지도 다시 그리기
+      setTimeout(() => {
+        map.relayout();
+        map.setCenter(coords); // 다시 한번 중심 설정
+        
+        // 마커 생성
+        const marker = new kakao.maps.Marker({
+          map: map,
+          position: coords
+        });
+
+        // 인포윈도우 생성
+        const infowindow = new kakao.maps.InfoWindow({
+          content: `<div style="padding:10px 15px;font-size:14px;font-weight:bold;white-space:nowrap;">${shelterName}</div>`
+        });
+
+        infowindow.open(map, marker);
+        
+        console.log(`🗺️ 지도 표시 성공: ${shelterName} (${result[0].y}, ${result[0].x})`);
+      }, 100);
+
     } else {
-      console.warn(`⚠️ 주소 변환 실패: ${address}`, status);
+      console.warn(`⚠️ 주소 변환 실패 (${status}): ${address}`);
+      
+      // 주소 검색 실패 시 공백 제거 후 재시도
+      const cleanAddress = address.replace(/\s+/g, ' ').trim();
+      if (cleanAddress !== address) {
+        console.log(`🔄 공백 정리 후 재시도: ${cleanAddress}`);
+        geocoder.addressSearch(cleanAddress, function(result2, status2) {
+          if (status2 === kakao.maps.services.Status.OK) {
+            const coords = new kakao.maps.LatLng(result2[0].y, result2[0].x);
+            
+            map.setCenter(coords);
+            map.setLevel(4);
+            
+            setTimeout(() => {
+              map.relayout();
+              map.setCenter(coords);
+              
+              const marker = new kakao.maps.Marker({ map: map, position: coords });
+              const infowindow = new kakao.maps.InfoWindow({
+                content: `<div style="padding:10px 15px;font-size:14px;font-weight:bold;">${shelterName}</div>`
+              });
+              infowindow.open(map, marker);
+              
+              console.log(`🗺️ 재시도 성공: ${shelterName}`);
+            }, 100);
+          } else {
+            console.error(`❌ 재시도도 실패 (${status2})`);
+          }
+        });
+      }
     }
   });
-}
-
-
-function renderShelterInfo(info) {
-  const box = document.querySelector(".content-box");
-  if (!box || !info) return;
-
-  box.innerHTML = `
-    <h2>${info.careNm}</h2>
-
-    <p><strong>지역</strong><br>${info.orgNm}</p>
-
-    <p><strong>보호소 주소</strong><br>${info.careAddr}</p>
-
-    <p><strong>전화번호</strong><br>${info.careTel || "정보 없음"}</p>
-
-    <p><strong>현재 보호 동물 수</strong><br>
-      🐾 ${info.currentAnimals} 마리
-    </p>
-  `;
 }
