@@ -1,9 +1,34 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyAd8SAQ0KtmsTPr9Fgw7-NxRtZNYt6O0q4",
+  authDomain: "pum-on.firebaseapp.com",
+  databaseURL: "https://pum-on-default-rtdb.firebaseio.com",
+  projectId: "pum-on",
+  storageBucket: "pum-on.firebasestorage.app",
+  messagingSenderId: "530653242737",
+  appId: "1:530653242737:web:b18a4ab43132aed1ab42d0",
+  measurementId: "G-4PC46EPXM2"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+db.ref("rescuedAnimals/shelters/list")
+  .once("value")
+  .then(snapshot => {
+    console.log("🔥 RTDB 연결 성공");
+    console.log(snapshot.val());
+  })
+  .catch(err => {
+    console.error("❌ RTDB 연결 실패", err);
+  });
+
+const chartMap = {};
+
 /*************************
  * 1. 전역 변수
  *************************/
 let regionSummary = [];
-let shelterCapacityData = [];
-let cityPressureMap = {};
+let currentSort = "pressure";
 
 const provinceSelect = document.getElementById("provinceSelect");
 const citySelect = document.getElementById("citySelect");
@@ -18,6 +43,7 @@ const modalContent = document.getElementById("modalContent");
  * 2. 페이지네이션 상태
  *************************/
 let allShelters = [];
+let visibleShelters = []; // ✅ 필터링된 보호소 목록
 let currentPage = 1;
 let currentGroup = 0;
 
@@ -25,71 +51,147 @@ const PAGE_SIZE = 12;
 const PAGE_GROUP_SIZE = 10;
 
 /*************************
- * 3. JSON 로드
+ * 3. Firebase 데이터 로드
  *************************/
-Promise.all([
-  fetch("./1month.json").then(res => res.json()),
-  fetch("./gyeonggi-shelter.json").then(res => res.json())
-])
-.then(([monthJson, shelterJson]) => {
-  regionSummary = monthJson.regionSummary;
-  shelterCapacityData = shelterJson;
+db.ref("rescuedAnimals/shelters/list").on("value", snap => {
+  const raw = snap.val();
+  if (!raw) return;
 
-  cityPressureMap = buildCityPressure();
-  initProvinceSelect();
-  createShelterList();
+  rebuildFromShelters(Object.values(raw));
+  prepareDashboardDataFromShelters(Object.values(raw));
+
+  const dashboardSection = document.querySelector(".dashboard-section");
+  if (dashboardSection) observer.observe(dashboardSection);
 });
 
 /*************************
  * 4. 압박지수 계산
  *************************/
-function buildCityPressure() {
-  const map = {};
+function rebuildFromShelters(shelters) {
+  const regionMap = {};
+  allShelters = [];
 
-  regionSummary.forEach(region => {
-    region.cities.forEach(city => {
-      map[city.city] ??= { current: 0, capacity: 0 };
-      map[city.city].current += city.count;
+  shelters.forEach(s => {
+    const info = s.info;
+    if (!info || !info.orgNm) return;
+
+    // ✅ orgNm 파싱 개선: "강원특별자치도 횡성군" → ["강원특별자치도", "횡성군"]
+    const parts = info.orgNm.trim().split(" ");
+    const province = parts[0] || "기타";
+    const city = parts.slice(1).join(" ") || "미분류";
+
+    console.log(`파싱: ${info.orgNm} → 시/도: ${province}, 시/군/구: ${city}`);
+
+    // regionSummary용
+    regionMap[province] ??= { province, cities: {} };
+    regionMap[province].cities[city] ??= {
+      city,
+      count: 0,
+      shelters: []
+    };
+
+    regionMap[province].cities[city].count += info.currentAnimals;
+    regionMap[province].cities[city].shelters.push(info.careNm);
+
+    // 카드용 (보호소 단위)
+    const capacity = (info.shelterCapacity === "미확인" || isNaN(info.shelterCapacity)) 
+      ? 0 
+      : Number(info.shelterCapacity);
+
+    const pressure = capacity > 0 ? info.currentAnimals / capacity : 0;
+
+    allShelters.push({
+      name: info.careNm,
+      province,
+      city,
+      current: info.currentAnimals,
+      capacity,
+      free: Math.max(capacity - info.currentAnimals, 0),
+      pressure,
+      urgency:
+        pressure * 0.5 +
+        info.currentAnimals * 0.3 +
+        (100 - Math.max(capacity - info.currentAnimals, 0)) * 0.2,
+      info
     });
   });
 
-  shelterCapacityData.forEach(shelter => {
-    const city = shelter.SIGUN_NM;
-    map[city] ??= { current: 0, capacity: 0 };
-    map[city].capacity += Number(shelter.ACEPTNC_ABLTY_CNT) || 0;
-  });
+  // regionSummary 변환
+  regionSummary = Object.values(regionMap).map(r => ({
+    province: r.province,
+    cities: Object.values(r.cities)
+  }));
 
-  return map;
+  console.log("📊 지역 요약:", regionSummary);
+
+  initProvinceSelect();
+  
+  // ✅ 초기에는 모든 보호소 표시 (대시보드 보호소 제외)
+  filterOutDashboardShelter();
+  applySortToVisible();
+  
+  currentPage = 1;
+  currentGroup = 0;
 }
+
+/*************************
+ * 4-1. 대시보드 보호소 제외
+ *************************/
+function filterOutDashboardShelter() {
+  const dashboardShelterName = window.dashboardData?.shelterName;
+
+  if (dashboardShelterName) {
+    visibleShelters = allShelters.filter(s => s.name !== dashboardShelterName);
+  } else {
+    visibleShelters = [...allShelters];
+  }
+
+  // 🔥 항상 정렬 보장
+  applySortToVisible();
+}
+
 
 /*************************
  * 5. 필터
  *************************/
 function initProvinceSelect() {
+  provinceSelect.innerHTML = `<option value="">전체 시/도</option>`;
+
   regionSummary.forEach(region => {
     const opt = document.createElement("option");
     opt.value = region.province;
     opt.textContent = region.province;
     provinceSelect.appendChild(opt);
   });
+
+  citySelect.innerHTML = `<option value="">전체 시/군/구</option>`;
+  citySelect.disabled = true;
 }
 
 provinceSelect.onchange = () => {
-  citySelect.innerHTML = `<option value="">시/군/구 선택</option>`;
+  citySelect.innerHTML = `<option value="">전체 시/군/구</option>`;
   citySelect.disabled = true;
 
   const province = provinceSelect.value;
-  if (!province) return createShelterList();
+  
+  // ✅ 시/도 미선택 시 전체 표시
+  if (!province) {
+    createShelterList();
+    return;
+  }
 
+  // ✅ 선택한 시/도의 시/군/구 목록 채우기
   const region = regionSummary.find(r => r.province === province);
-  region.cities.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.city;
-    opt.textContent = c.city;
-    citySelect.appendChild(opt);
-  });
+  if (region) {
+    region.cities.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.city;
+      opt.textContent = c.city;
+      citySelect.appendChild(opt);
+    });
+    citySelect.disabled = false;
+  }
 
-  citySelect.disabled = false;
   createShelterList(province);
 };
 
@@ -98,23 +200,26 @@ citySelect.onchange = () => {
 };
 
 /*************************
- * 6. 리스트 생성
+ * 6. 리스트 생성 (필터링)
  *************************/
 function createShelterList(province = "", city = "") {
-  allShelters = [];
-
-  regionSummary.forEach(region => {
-    if (province && region.province !== province) return;
-
-    region.cities.forEach(c => {
-      if (city && c.city !== city) return;
-
-      c.shelters.forEach(name => {
-        allShelters.push({ name, city: c.city });
-      });
-    });
+  console.log(`🔍 필터 적용: 시/도=${province}, 시/군/구=${city}`);
+  
+  const dashboardShelterName = window.dashboardData?.shelterName;
+  
+  // ✅ 필터링 (대시보드 보호소 제외)
+  visibleShelters = allShelters.filter(s => {
+    // 대시보드 보호소 제외
+    if (dashboardShelterName && s.name === dashboardShelterName) return false;
+    
+    if (province && s.province !== province) return false;
+    if (city && s.city !== city) return false;
+    return true;
   });
 
+  console.log(`📋 필터 결과: ${visibleShelters.length}개 보호소`);
+
+  applySortToVisible();
   currentPage = 1;
   currentGroup = 0;
   renderPage();
@@ -122,44 +227,172 @@ function createShelterList(province = "", city = "") {
 }
 
 /*************************
- * 7. 카드 렌더링
+ * 7. 정렬
+ *************************/
+function applySortToVisible() {
+  switch (currentSort) {
+    case "pressure":
+      visibleShelters.sort((a, b) => {
+        const pressureA = a.pressure || 0;
+        const pressureB = b.pressure || 0;
+        return pressureB - pressureA; // 내림차순 (높은 순)
+      });
+      break;
+
+    case "count":
+      visibleShelters.sort((a, b) => {
+        const countA = a.current || 0;
+        const countB = b.current || 0;
+        return countB - countA; // 내림차순
+      });
+      break;
+
+    case "free":
+      visibleShelters.sort((a, b) => {
+        const freeA = a.free || 0;
+        const freeB = b.free || 0;
+        return freeB - freeA; // 내림차순 (여유 많은 순)
+      });
+      break;
+
+    case "urgency":
+      visibleShelters.sort((a, b) => {
+        const urgencyA = a.urgency || 0;
+        const urgencyB = b.urgency || 0;
+        return urgencyB - urgencyA; // 내림차순 (시급한 순)
+      });
+      break;
+
+    case "region":
+      visibleShelters.sort((a, b) => {
+        if (a.province !== b.province) {
+          return a.province.localeCompare(b.province);
+        }
+        return a.city.localeCompare(b.city);
+      });
+      break;
+  }
+  
+  console.log(`✅ 정렬 완료 (${currentSort}):`, visibleShelters.slice(0, 5).map(s => ({
+    name: s.name,
+    pressure: (s.pressure * 100).toFixed(1) + '%',
+    current: s.current
+  })));
+}
+
+document.querySelectorAll("#sortTags .tag").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll("#sortTags .tag")
+      .forEach(t => t.classList.remove("active"));
+
+    btn.classList.add("active");
+    currentSort = btn.dataset.sort;
+
+    applySortToVisible();
+    currentPage = 1;
+    currentGroup = 0;
+    renderPage();
+    renderPagination();
+  });
+});
+
+/*************************
+ * 8. 이미지 매칭
+ *************************/
+function getShelterImage(shelterName) {
+  // 키워드와 이미지 매핑 (우선순위 순서대로)
+  const imageMap = [
+    { keyword: "(사)플러스", image: "asset/img/plus.jpg" },
+    { keyword: "사단법인", image: "asset/img/incorporated_association.jpg" },
+    { keyword: "무주군", image: "asset/img/muju.jpg" },
+    { keyword: "철원군", image: "asset/img/cheolwon.jpg" },
+    { keyword: "수의사회", image: "asset/img/vet.jpg" },
+    { keyword: "구청", image: "asset/img/district.jpg" },
+    { keyword: "훈련소", image: "asset/img/training_center.jpg" },
+    { keyword: "메디컬", image: "asset/img/medical.png" },
+    { keyword: "병원", image: "asset/img/hospital.jpeg" },
+    { keyword: "협회", image: "asset/img/association.jpg" },
+    { keyword: "센터", image: "asset/img/center.jpeg" },
+    { keyword: "보호소", image: "asset/img/shelter.jpg" },
+    { keyword: "축산", image: "asset/img/husbandry.jpg" }
+  ];
+
+  // 첫 번째로 매칭되는 키워드의 이미지 반환
+  for (const { keyword, image } of imageMap) {
+    if (shelterName.includes(keyword)) {
+      return `${image}`;
+    }
+  }
+
+  // 매칭되는 키워드가 없으면 기본 이미지
+  return "asset/img/shelter.jpg";
+}
+
+/*************************
+ * 9. 카드 렌더링
  *************************/
 function renderPage() {
   cardContainer.innerHTML = "";
 
+  // ✅ visibleShelters 사용
   const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = allShelters.slice(start, start + PAGE_SIZE);
+  const pageItems = visibleShelters.slice(start, start + PAGE_SIZE);
+
+  if (pageItems.length === 0) {
+    cardContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; padding:40px;">필터 조건에 맞는 보호소가 없습니다.</p>';
+    return;
+  }
 
   pageItems.forEach((item, idx) => {
-    const pressureData = cityPressureMap[item.city];
-    const pressure = pressureData?.capacity
-      ? Math.min((pressureData.current / pressureData.capacity) * 100, 100)
-      : 0;
-
     const canvasId = `chart-${currentPage}-${idx}`;
+    const imagePath = getShelterImage(item.name);
 
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div class="card-image">IMG</div>
+      <div class="card-image" style="background-image: url('${imagePath}'); background-size: cover; background-position: center;"></div>
       <canvas id="${canvasId}" width="220" height="26"></canvas>
       <div class="card-title">${item.name}</div>
+      <small>
+        압박 ${(item.pressure * 100).toFixed(1)}% ·
+        보호 ${item.current} ·
+        여유 ${item.free}
+      </small>
     `;
 
-    card.onclick = () => openModal(`${item.name} (${item.city})`);
-    cardContainer.appendChild(card);
+    card.onclick = () =>
+      openModal(
+        `<strong>${item.name}</strong><br><br>
+         📍 지역: ${item.province} ${item.city}<br>
+         📊 압박지수: ${(item.pressure * 100).toFixed(1)}%<br>
+         🐾 현재 보호: ${item.current}마리<br>
+         💺 수용 가능: ${item.capacity > 0 ? item.capacity + '마리' : '미확인'}<br>
+         ⚠️ 입양 시급도: ${item.urgency.toFixed(1)}`
+      );
 
-    renderGauge(canvasId, pressure);
+    cardContainer.appendChild(card);
+    const chartData = getChartValue(item);
+
+    if (chartData) {
+      renderGauge(canvasId, chartData.value, chartData.color);
+    } else {
+      document.getElementById(canvasId).style.display = "none";
+    }
   });
 }
 
 /*************************
- * 8. 페이지네이션 (기존 방식 유지)
+ * 10. 페이지네이션
  *************************/
 function renderPagination() {
   pagination.innerHTML = "";
 
-  const totalPages = Math.ceil(allShelters.length / PAGE_SIZE);
+  // ✅ visibleShelters 기준으로 페이지 계산
+  const totalPages = Math.ceil(visibleShelters.length / PAGE_SIZE);
+  
+  if (totalPages <= 1) return; // 페이지가 1개 이하면 숨김
+
   const startPage = currentGroup * PAGE_GROUP_SIZE + 1;
   const endPage = Math.min(startPage + PAGE_GROUP_SIZE - 1, totalPages);
 
@@ -201,19 +434,20 @@ function createPageBtn(text, onClick) {
 }
 
 /*************************
- * 9. 차트
+ * 11. 차트
  *************************/
-function renderGauge(id, value) {
-  new Chart(document.getElementById(id), {
+function renderGauge(id, value, color) {
+  if (chartMap[id]) {
+    chartMap[id].destroy();
+  }
+
+  chartMap[id] = new Chart(document.getElementById(id), {
     type: "bar",
     data: {
       labels: [""],
       datasets: [{
         data: [value],
-        backgroundColor:
-          value >= 80 ? "#e74c3c" :
-          value >= 50 ? "#f1c40f" :
-                        "#2ecc71",
+        backgroundColor: color,
         borderRadius: 8,
         barThickness: 14
       }]
@@ -225,19 +459,390 @@ function renderGauge(id, value) {
         x: { min: 0, max: 100, display: false },
         y: { display: false }
       },
-      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      }
     }
   });
 }
 
 /*************************
- * 10. 모달
+ * 12. 모달
  *************************/
-function openModal(text) {
-  modalContent.textContent = text;
+function openModal(html) {
+  modalContent.innerHTML = html;
   modalOverlay.style.display = "flex";
 }
 modalCloseBtn.onclick = () => modalOverlay.style.display = "none";
 modalOverlay.onclick = e => {
   if (e.target === modalOverlay) modalOverlay.style.display = "none";
 };
+
+/*************************
+ * 13. 대시보드
+ *************************/
+let dashboardPlayed = false;
+
+function animateValue(el, target, duration = 1200) {
+  const unit = el.dataset.unit || "";
+  let start = null;
+
+  function step(ts) {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const value = (progress * target).toFixed(target % 1 === 0 ? 0 : 1);
+    el.textContent = `${value}${unit}`;
+    if (progress < 1) requestAnimationFrame(step);
+  }
+
+  requestAnimationFrame(step);
+}
+
+function createGradientDonut(canvasId, value, colors) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+
+  const gradient = ctx.createLinearGradient(0, 0, 180, 180);
+  colors.forEach((c, i) =>
+    gradient.addColorStop(i / (colors.length - 1), c)
+  );
+
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      datasets: [{
+        data: [value, 100 - value],
+        backgroundColor: [gradient, "#e5e7eb"],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      cutout: "72%",
+      animation: {
+        duration: 1400,
+        easing: "easeOutQuart"
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      }
+    }
+  });
+}
+
+function initDashboard(data) {
+  if (dashboardPlayed) return;
+  dashboardPlayed = true;
+
+  const {
+    shelterName,
+    pressure,
+    localRate,
+    regionRate,
+    urgency,
+    currentAnimals
+  } = data;
+
+  // 제목 업데이트
+  const titleBox = document.querySelector(".title-box h1");
+  if (titleBox) {
+    titleBox.textContent = shelterName;
+  }
+
+  createGradientDonut("pressureChart", pressure, ["#ef4444", "#f97316"]);
+  createGradientDonut("localRateChart", localRate, ["#3b82f6", "#22c55e"]);
+  createGradientDonut("gyeonggiRateChart", regionRate, ["#22c55e", "#16a34a"]);
+  createGradientDonut("countChart", urgency, ["#8b5cf6", "#6366f1"]);
+
+  // 값 업데이트
+  const values = document.querySelectorAll(".circle-value");
+  values[0].dataset.value = pressure;
+  values[1].dataset.value = localRate;
+  values[2].dataset.value = regionRate;
+  values[3].dataset.value = currentAnimals;
+
+  // 레이블 업데이트
+  const labels = document.querySelectorAll(".circle span");
+  labels[3].textContent = "입양 시급도";
+
+  document.querySelectorAll(".circle-value").forEach(el => {
+    animateValue(el, parseFloat(el.dataset.value));
+  });
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && window.dashboardData) {
+      initDashboard(window.dashboardData);
+      observer.disconnect();
+    }
+  });
+}, { threshold: 0.4 });
+
+function prepareDashboardDataFromShelters(shelters) {
+  if (!shelters || shelters.length === 0) return;
+
+  // 1. 압박지수가 가장 높은 보호소 찾기
+  let maxPressureShelter = null;
+  let maxPressure = -1;
+
+  shelters.forEach(s => {
+    if (!s.info || !s.info.orgNm) return;
+
+    const capacity = (s.info.shelterCapacity === "미확인" || isNaN(s.info.shelterCapacity))
+      ? 0
+      : Number(s.info.shelterCapacity);
+
+    if (capacity === 0) return; // 수용량 미확인인 경우 제외
+
+    const pressure = s.info.currentAnimals / capacity;
+
+    if (pressure > maxPressure) {
+      maxPressure = pressure;
+      maxPressureShelter = s;
+    }
+  });
+
+  if (!maxPressureShelter) {
+    console.warn("압박지수를 계산할 수 있는 보호소가 없습니다.");
+    return;
+  }
+
+  const targetShelter = maxPressureShelter.info;
+  console.log("🎯 최고 압박지수 보호소:", targetShelter.careNm, `(${(maxPressure * 100).toFixed(1)}%)`);
+
+  // 2. 해당 보호소가 속한 지역 추출
+  const parts = targetShelter.orgNm.trim().split(" ");
+  const province = parts[0] || "기타";
+  const city = parts.slice(1).join(" ") || "미분류";
+
+  // 3. 지역 보호율 계산 (해당 보호소 동물 수 / 해당 지역 전체 동물 수 합)
+  const regionShelters = shelters.filter(s => 
+    s.info && s.info.orgNm && s.info.orgNm.includes(city)
+  );
+
+  const totalRegionAnimals = regionShelters.reduce(
+    (sum, s) => sum + (s.info ? s.info.currentAnimals : 0), 0
+  );
+
+  // ✅ 수정: 해당 보호소 동물 수 / 해당 지역 전체 동물 수 합
+  const localRate = totalRegionAnimals > 0
+    ? (targetShelter.currentAnimals / totalRegionAnimals) * 100
+    : 0;
+
+  console.log(`📊 지역 보호율 계산: ${targetShelter.currentAnimals} / ${totalRegionAnimals} = ${localRate.toFixed(1)}%`);
+
+  // 4. 지역 대비 보호소 수용률 계산
+  // (해당 지역 최대 수용량 / 전체 지역 최대 수용량)
+  const regionCapacity = regionShelters.reduce((sum, s) => {
+    if (!s.info) return sum;
+    const cap = (s.info.shelterCapacity === "미확인" || isNaN(s.info.shelterCapacity))
+      ? 0
+      : Number(s.info.shelterCapacity);
+    return sum + cap;
+  }, 0);
+
+  const totalCapacity = shelters.reduce((sum, s) => {
+    if (!s.info) return sum;
+    const cap = (s.info.shelterCapacity === "미확인" || isNaN(s.info.shelterCapacity))
+      ? 0
+      : Number(s.info.shelterCapacity);
+    return sum + cap;
+  }, 0);
+
+  const regionRate = totalCapacity > 0
+    ? (regionCapacity / totalCapacity) * 100
+    : 0;
+
+  // 5. 입양 시급도 계산
+  const capacity = Number(targetShelter.shelterCapacity) || 1;
+  const pressure = (targetShelter.currentAnimals / capacity);
+  const shortage = Math.max(0, targetShelter.currentAnimals - capacity);
+
+  const urgency = Math.min(
+    (pressure * 0.5 + targetShelter.currentAnimals * 0.003 + shortage * 0.002) * 100,
+    100
+  );
+
+  // 6. 대시보드 데이터 설정
+  window.dashboardData = {
+    shelterName: targetShelter.careNm,
+    pressure: Math.round(pressure * 100),
+    localRate: Math.round(localRate * 10) / 10,
+    regionRate: Math.round(regionRate * 10) / 10,
+    urgency: Math.round(urgency),
+    currentAnimals: targetShelter.currentAnimals
+  };
+
+  // ✅ 보호소 주소 저장
+  window.dashboardShelterAddress = targetShelter.careAddr;
+
+  // ✅ content-box 텍스트 렌더링
+  renderShelterInfo(targetShelter);
+
+  // ✅ 지도는 여기서 초기화 (중요)
+  initKakaoMap();
+
+  console.log("📊 대시보드 데이터:", window.dashboardData);
+  console.log("📍 보호소 주소:", window.dashboardShelterAddress);
+
+  // ✅ 대시보드 데이터 설정 후 카드 리스트 다시 필터링
+  if (typeof filterOutDashboardShelter === 'function') {
+    filterOutDashboardShelter();
+
+    currentPage = 1;
+    currentGroup = 0;
+    renderPage();
+    renderPagination();
+  }
+}
+
+/*************************
+ * 14. 차트 유틸
+ *************************/
+function getChartValue(item) {
+  switch (currentSort) {
+    case "pressure":
+      return {
+        value: Math.min(item.pressure * 100, 100),
+        color: valueColor(item.pressure * 100)
+      };
+
+    case "count":
+      const countPercent = normalize(item.current, getMax("current"));
+      return {
+        value: countPercent,
+        color: valueColor(countPercent)
+      };
+
+    case "free":
+      const freePercent = normalize(item.free, getMax("free"));
+      return {
+        value: freePercent,
+        color: valueColor(freePercent)
+      };
+
+    case "urgency":
+      const urgencyPercent = normalize(item.urgency, getMax("urgency"));
+      return {
+        value: urgencyPercent,
+        color: valueColor(urgencyPercent)
+      };
+
+    default:
+      return null;
+  }
+}
+
+function getMax(key) {
+  // ✅ visibleShelters 기준으로 최댓값 계산
+  return Math.max(...visibleShelters.map(s => s[key] || 0), 1);
+}
+
+function normalize(value, max) {
+  return Math.round((value / max) * 100);
+}
+
+function valueColor(value) {
+  if (value >= 80) return "#ef4444"; // 빨강 (위험)
+  if (value >= 50) return "#f59e0b"; // 주황 (경고)
+  return "#22c55e"; // 초록 (안전)
+}
+
+/*************************
+ * 15. Kakao Map
+ *************************/
+let kakaoMapInstance = null;
+
+function initKakaoMap() {
+  const mapContainer = document.getElementById("kakaoMap");
+  if (!mapContainer) return;
+
+  if (typeof kakao === "undefined" || !kakao.maps) {
+    setTimeout(initKakaoMap, 500);
+    return;
+  }
+
+  mapContainer.innerHTML = "";
+
+  const mapOption = {
+    center: new kakao.maps.LatLng(36.5, 127.5),
+    level: 13
+  };
+
+  kakaoMapInstance = new kakao.maps.Map(mapContainer, mapOption);
+
+  // 🔥 핵심: 레이아웃 확정 후 relayout
+  setTimeout(() => {
+    kakaoMapInstance.relayout();
+
+    if (window.dashboardShelterAddress) {
+      displayShelterOnMap(
+        kakaoMapInstance,
+        window.dashboardShelterAddress,
+        window.dashboardData.shelterName
+      );
+    }
+  }, 0);
+}
+
+
+function displayShelterOnMap(map, address, shelterName) {
+  // ✅ kakao 객체 확인
+  if (typeof kakao === 'undefined' || !kakao.maps || !kakao.maps.services) {
+    console.error("❌ 카카오맵 services 라이브러리가 로드되지 않았습니다.");
+    return;
+  }
+
+  // 카카오 주소-좌표 변환 객체 생성
+  const geocoder = new kakao.maps.services.Geocoder();
+
+  // 주소로 좌표 검색
+  geocoder.addressSearch(address, function(result, status) {
+    if (status === kakao.maps.services.Status.OK) {
+      const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+      // 마커 생성
+      const marker = new kakao.maps.Marker({
+        map: map,
+        position: coords
+      });
+
+      // 인포윈도우 생성
+      const infowindow = new kakao.maps.InfoWindow({
+        content: `<div style="padding:10px;font-size:14px;font-weight:bold;">${shelterName}</div>`
+      });
+
+      infowindow.open(map, marker);
+
+      // 해당 위치로 지도 중심 이동 및 확대
+      map.setLevel(4);
+      map.relayout();
+      map.panTo(coords);
+
+      console.log(`🗺️ 지도 표시 성공: ${shelterName} (${address})`);
+    } else {
+      console.warn(`⚠️ 주소 변환 실패: ${address}`, status);
+    }
+  });
+}
+
+
+function renderShelterInfo(info) {
+  const box = document.querySelector(".content-box");
+  if (!box || !info) return;
+
+  box.innerHTML = `
+    <h2>${info.careNm}</h2>
+
+    <p><strong>지역</strong><br>${info.orgNm}</p>
+
+    <p><strong>보호소 주소</strong><br>${info.careAddr}</p>
+
+    <p><strong>전화번호</strong><br>${info.careTel || "정보 없음"}</p>
+
+    <p><strong>현재 보호 동물 수</strong><br>
+      🐾 ${info.currentAnimals} 마리
+    </p>
+  `;
+}
