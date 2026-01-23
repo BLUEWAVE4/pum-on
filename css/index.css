@@ -5,6 +5,7 @@
     --bg: #ffffff;
     --bg-smokey: #E3E3E3;
     --txt: #192631;
+    --shadow: #1926310d;
     --sub-txt: #456887;
     --danger: #ff2462;
     --warning: #FFB01F;
@@ -136,7 +137,7 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: var(--text);
+    color: var(--txt);
     width: 100%;
     gap: 5rem;
     height: 92px;
@@ -196,7 +197,7 @@ li:hover .link {
 
 .container {
     display: flex;
-    width: 1440x;
+    width: 1440px;
     margin: auto;
     justify-content: space-between;
     align-items: center;
@@ -271,8 +272,8 @@ li:hover .link {
     top: 112px;
     right: 0px;
     opacity: 0;
-    gap: 8px;
-    padding: 12px 24px;
+    /* gap: 8px; */
+    padding: 8px;
     border: 1px solid var(--bg-smokey);
     backdrop-filter: blur(16px);
     background: var(--trans-white);
@@ -664,12 +665,6 @@ li:hover .link {
     /* prevent image drag ghost */
 }
 
-.sheltercard * {
-    user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-}
-
 .shelter-num {
     font-size: 3rem;
     font-weight: 500;
@@ -714,19 +709,28 @@ progress::-moz-progress-bar {
     border-radius: 4px;
 }
 
-.progress-safe::-webkit-progress-value,
+.progress-safe::-webkit-progress-value{
+    background-color: var(--good);
+}
+
 .progress-safe::-moz-progress-bar {
-    background-color: #09F66C;
+    background-color: var(--good);
 }
 
-.progress-warning::-webkit-progress-value,
+.progress-warning::-webkit-progress-value{
+    background-color: var(--warning);
+}
+
 .progress-warning::-moz-progress-bar {
-    background-color: #FFB01F;
+    background-color: var(--warning);
 }
 
-.progress-danger::-webkit-progress-value,
+.progress-danger::-webkit-progress-value{
+    background-color: var(--danger);
+}
+
 .progress-danger::-moz-progress-bar {
-    background-color: #ff2462;
+    background-color: var(--danger);
 }
 
 .sub {
@@ -784,7 +788,7 @@ progress::-moz-progress-bar {
 
 .petcard:hover {
     scale: 1.02;
-    box-shadow: 0 4px 12px 12px color-mix(var(--txt) 5%, transparent);
+    box-shadow: 0 4px 12px 12px var(--shadow);
 }
 
 .card-top {
@@ -861,7 +865,7 @@ progress::-moz-progress-bar {
     margin: 56px auto;
     /* 15% from the top and centered */
     border-radius: 24px;
-    width: 50%;
+    width: 40vw;
     /* Could be more or less, depending on screen size */
     height: 800px;
     word-break: keep-all;

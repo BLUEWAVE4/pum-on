@@ -29,6 +29,22 @@ function isWithinLastMonth(yyyymmdd) {
   return itemDate >= thirtyDaysAgo && itemDate <= today;
 }
 
+function buildAllPetList(dataRoot) {
+  const allPets = [];
+
+  Object.values(dataRoot || {}).forEach(monthObj => {
+    Object.values(monthObj || {}).forEach(dayArr => {
+      if (!Array.isArray(dayArr)) return;
+
+      dayArr.forEach(pet => {
+        allPets.push(pet);
+      });
+    });
+  });
+
+  return allPets;
+}
+
 /*************************
  * 2 DATA LOAD & TRANSFORM
  *************************/
@@ -37,6 +53,14 @@ async function loadData() {
     const response = await fetch('./js/pum--on-default-rtdb-export.json');
     const rawData = await response.json();
     const rescued = rawData.rescuedAnimals || {};
+    APP.liveAnimals = buildAllPetList(rescued.data)
+      .filter(a => a.processState === "보호중")
+      .sort((a, b) => {
+        const da = a.happenDt || a.noticeSdt || "99999999";
+        const db = b.happenDt || b.noticeSdt || "99999999";
+        return da.localeCompare(db); // oldest first
+      });
+    console.log("ALL PetCards:", APP.liveAnimals.length);
 
     // --- SOURCE A: Historical Data (For Chart & Gyeonggi Notice Count) ---
     // Extracting both nested objects from rescuedAnimals.data
@@ -78,9 +102,21 @@ async function loadData() {
       // Strict Filter: Only shelters with capacity
       if (!capacity || isNaN(capacity) || capacity <= 0) return;
 
-      const shelterAnimals = Array.isArray(info.animals) ? info.animals : [];
+      const shelterAnimals = Array.isArray(info.animals)
+        ? info.animals
+          .filter(a => a.processState?.includes("보호"))
+          .sort((a, b) => {
+            const da = a.happenDt || a.noticeSdt || "99999999";
+            const db = b.happenDt || b.noticeSdt || "99999999";
+            return da.localeCompare(db); // oldest first
+          })
+        : [];
 
+      const protectedCount = shelterAnimals.filter(a =>
+        a.processState?.includes("보호")
+      ).length;
       // Map live animals for petCards
+
       shelterAnimals.forEach(a => {
         liveAnimals.push({
           ...a,
@@ -95,8 +131,8 @@ async function loadData() {
         careNm: info.careNm || "미등록",
         careAddr: info.careAddr || "미등록",
         capacity: capacity || 0,
-        count: shelterAnimals.length,
-        pressure: Math.min(Math.round((shelterAnimals.length / capacity) * 100), 100)
+        count: protectedCount,
+        pressure: calcPressure(protectedCount, capacity)
       });
     });
 
@@ -104,7 +140,6 @@ async function loadData() {
     const meta = rescued.shelters?.meta || {};
 
     APP.shelters = processedShelters;
-    APP.liveAnimals = liveAnimals;
     APP.meta = meta; // Global stats source
 
     syncMapData(APP.shelters);
@@ -203,14 +238,14 @@ function renderTop5(container, shelters) {
   container.innerHTML = "";
 
   // Sort by pressure and take top 10
-  const topList = [...shelters].sort((a, b) => b.pressure - a.pressure).slice(0, 10);
+  const topList = [...shelters].sort((a, b) => b.pressure - a.pressure).slice(0, 5);
 
   topList.forEach((s, i) => {
     const card = document.createElement("div");
     card.className = "sheltercard";
 
     // Each card uses its own 's.capacity' from the processedShelters variable
-    let progClass = s.pressure >= 75 ? "progress-danger" : s.pressure >= 30 ? "progress-warning" : "progress-safe";
+    let progClass = s.pressure >= 75 ? "progress-danger" : s.pressure >= 40 ? "progress-warning" : "progress-safe";
 
     card.innerHTML = `
       <div class="flx-ttl">
@@ -297,14 +332,17 @@ function renderSummaryChart(canvas, animals) {
  * 4 GYEONGGI SUMMARY
  *************************/
 function calcGyeonggiSummary(animals, shelters, meta) {
-  const ggShelters = shelters.filter(s => s.careAddr?.includes("경기도"));
+  const ggShelters = shelters.filter(s => s.careAddr);
 
   const totalCapacity = ggShelters.reduce((sum, s) => sum + s.capacity, 0);
-  const totalProtected = ggShelters.reduce((sum, s) => sum + s.count, 0);
+  const totalProtected = animals.filter(a =>
+    a.careAddr?.includes("경기도") &&
+    a.processState?.includes("보호")
+  ).length;
 
   // Historical notice count from .data
-  const ggHistorical = animals.filter(a => a.careAddr?.includes("경기도") && isWithinLastMonth(a.noticeSdt));
-  const noticeCount = ggHistorical.filter(a => a.processState?.includes("보호")).length;
+  const noticeCount = animals.filter(a => a.careAddr?.includes("경기도") && a.processState?.includes("보호")).length;
+
 
   return {
     totalCapacity,
@@ -347,7 +385,7 @@ function renderGyeonggiSummary(summary, duration = 800) {
 
     if (p > 70) {
       dash.classList.add("card-danger");
-    } else if (p > 30) {
+    } else if (p > 40) {
       dash.classList.add("card-warning");
     } else {
       dash.classList.add("card-null");

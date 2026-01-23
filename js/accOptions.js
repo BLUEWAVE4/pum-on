@@ -9,7 +9,7 @@ trigger.addEventListener("click", (e) => {
   if (!isOpen) {
     menu.style.display = "flex";
 
-    // 👇 forces initial render
+    // force initial render for transition
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         menu.classList.add("open");
@@ -22,7 +22,20 @@ trigger.addEventListener("click", (e) => {
   }
 });
 
-document.addEventListener("click", closeMenu);
+// ⬇️ close only when clicking OUTSIDE trigger + menu
+document.addEventListener("click", (e) => {
+  if (!isOpen) return;
+
+  if (
+    trigger.contains(e.target) ||
+    menu.contains(e.target)
+  ) {
+    return;
+  }
+
+  closeMenu();
+});
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeMenu();
 });
