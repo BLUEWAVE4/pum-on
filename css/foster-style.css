@@ -1,17 +1,71 @@
 :root {
-    --max--width: 1200px;
-    --border--color: #e5e7eb;
-    --border-radius__button: 8px;
-    --border-radius__card: 12px;
-    --bg--common: #FFFFFF;
-    --bg--smokey: #E3E3E3;
-    --color--primary: #6673FF;
-    --color--primary__sub: #B9BFFF;
-    --color--primary__dark: #460eaf;
-    --color--secondary: #FFB01F;
-    --color--text: #192631;
-    --color--subtext: #4C7495;
 
+    /* =========================
+     Layout
+     ========================= */
+    --layout-max-width: 90rem;
+    /* 1440px */
+
+    /* =========================
+     Typography (5-step scale)
+     ========================= */
+    /* Level 1 : Main title */
+    --font-size-1: 1.55rem;
+    --font-weight-1: 700;
+
+    /* Level 2 : Section title */
+    --font-size-2: 1.2rem;
+    --font-weight-2: 600;
+
+    /* Level 3 : Emphasis */
+    --font-size-3: 1.1rem;
+    --font-weight-3: 500;
+
+    /* Level 4 : Body (default) */
+    --font-size-4: 1rem;
+    --font-weight-4: 500;
+
+    /* Level 5 : Caption / Helper */
+    --font-size-5: 0.85rem;
+    --font-weight-5: 400;
+
+    /* =========================
+     Brand Colors
+     ========================= */
+    --color-border: #e5e7eb;
+
+    --color-bg-common: #ffffff;
+    --color-bg-smokey: #e3e3e3;
+
+    --color-primary: #6673ff;
+    --color-primary-sub: #b9bfff;
+    --color-secondary: #ffb01f;
+
+    --color-text: #192631;
+    --color-subtext: #4c7495;
+    --color-mute: #888888;
+
+    --color-danger: #ff2462;
+    --color-good: #09f66c;
+
+    /* =========================
+     Border Radius (rem-based)
+     ========================= */
+    /* Card */
+    --radius-card-lg: 1.5rem;
+    /* 24px */
+    --radius-card-sm: 1rem;
+    /* 16px */
+
+    /* Button */
+    --radius-button-lg: 1rem;
+    /* 16px */
+
+    /* Fully rounded (pill / circle) */
+    --radius-round: 999rem;
+
+    /* Badge */
+    --radius-badge: 999rem;
 }
 
 * {
@@ -25,19 +79,12 @@
     display: flex;
     gap: 20px;
     margin: 12px auto;
-    width: var(--max--width);
+    width: var(--layout-max-width);
 }
 
 .dashboard-container {
     flex: 1;
-    background-color: var(--bg--common);
-    border-radius: 12px;
-    padding: 8px 24px 24px 24px;
-}
-
-.dashboard-calendar {
-    flex: 1;
-    background-color: var(--bg--common);
+    background-color: var(--color-bg-common);
     border-radius: 12px;
     padding: 8px 24px 24px 24px;
 }
@@ -53,7 +100,7 @@
 .dashboard-line {
     height: 25px;
     width: 5px;
-    background-color: var(--color--subtext);
+    background-color: var(--color-primary);
     margin-right: 5px;
     display: block;
 }
@@ -64,21 +111,20 @@
     grid-template-rows: repeat(3, auto);
     list-style: none;
     gap: 15px;
+
 }
 
 .dashboard-card {
-    color: white;
+    color: var(--color-subtext);
     font-size: 14px;
     font-weight: 500;
     text-align: center;
     border-radius: 12px;
-    border: none;
     padding: 20px;
-    background: linear-gradient(135deg, var(--color--primary) 0%, #e53935 100%);
-    box-shadow:
-        0 4px 6px rgba(229, 57, 53, 0.25),
-        0 1px 3px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* background: linear-gradient(135deg, var(--color-primary) 0%, var(--color--secondary) 100%); */
+    background-color: var(--bg--smokey);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
 }
 
 .dashboard-card.card-wide {
@@ -98,10 +144,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f9fafb;
     border-radius: 12px;
     padding: 20px;
     min-height: 180px;
+    background-color: rgb(255, 252, 252);
+
 }
 
 .dashboard-chart-item canvas {
@@ -112,7 +159,7 @@
 /* 통계 요약 스타일 */
 .dashboard-stats {
     flex: 1;
-    background-color: var(--bg--common);
+    background-color: var(--color-bg-common);
     border-radius: 12px;
     padding: 8px 24px 24px 24px;
     display: flex;
@@ -132,11 +179,12 @@
 
 /* 임시보호자 현황 대시보드 */
 .foster-container {
-    margin: 12px 0px 12px 0px;
-    width: var(--max--width);
-    background-color: var(--bg--common);
+    margin: auto;
+    width: var(--layout-max-width);
+    background-color: var(--color-bg-common);
     border-radius: 12px;
     padding: 8px 24px 24px 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .foster-title {
@@ -156,11 +204,12 @@
 }
 
 .foster-filter>select {
+    cursor: pointer;
     width: 100px;
     height: 30px;
     text-align: center;
-    border-radius: var(--border-radius__button);
-    border-color: var(--border--color);
+    border-radius: var(--radius-card-sm);
+    border-color: var(--color-bg-smokey);
     font-weight: 500;
 }
 
@@ -174,10 +223,10 @@
 .foster-list {
     display: flex;
     flex-direction: column;
-    border: 0.5px solid var(--border--color);
-    border-radius: var(--border-radius__card);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-card-sm);
     padding: 8px;
-    background-color: var(--bg--common);
+    background-color: var(--color-bg-common);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
@@ -185,11 +234,11 @@
 
 .foster-list:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-    border-color: var(--color--primary);
+    border-color: var(--color-primary);
 }
 
 .foster-list.expanded {
-    border-color: var(--color--primary);
+    border-color: var(--color-primary);
 }
 
 .foster-list-main {
@@ -211,7 +260,7 @@
     max-height: 200px;
     opacity: 1;
     padding: 16px 8px 8px;
-    border-top: 1px solid var(--border--color);
+    border-top: 1px solid var(--color-border);
     margin-top: 12px;
 }
 
@@ -240,12 +289,16 @@
 }
 
 /* 아이콘 박스 (여러 아이콘 묶음) */
-.icon-box {
+.icon-flex {
     display: flex;
     justify-content: center;
     width: 150px;
-    border-right: 1px solid var(--border--color);
+    border-right: 1px solid var(--color-bg-smokey);
     margin-right: 16px;
+}
+
+.icon-box {
+    flex: 1;
 }
 
 /* 아이콘 공통 스타일 */
@@ -302,9 +355,10 @@
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    border: 1px solid var(--border--color);
+    border: 1px solid var(--color-border);
     cursor: pointer;
 }
+
 .list-document img {
     width: 24px;
     height: 24px;
@@ -326,16 +380,16 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background-color: var(--bg--common);
-    border: 1px solid var(--border--color);
+    background-color: var(--color-bg-common);
+    border: 1px solid var(--color-border);
     color: var(--color--text);
     font-weight: 500;
     transition: all 0.2s ease;
 }
 
 .foster-pagenation a:hover {
-    background-color: var(--color--primary);
-    border-color: var(--color--primary);
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
     color: white;
     text-decoration: none;
 }
@@ -353,8 +407,8 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background-color: var(--bg--common);
-    border: 1px solid var(--border--color);
+    background-color: var(--color-bg-common);
+    border: 1px solid var(--color-border);
     color: var(--color--text);
     font-weight: 500;
     cursor: pointer;
@@ -362,16 +416,26 @@
 }
 
 .foster-controller li:hover {
-    background-color: var(--color--primary__sub);
-    border-color: var(--color--primary);
-    color: var(--color--primary__dark);
+    background-color: var(--color-primary__sub);
+    border-color: var(--color-primary);
+    color: var(--color--subtext);
 }
 
 .foster-controller li.active {
-    background-color: var(--color--primary);
-    border-color: var(--color--primary);
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    font-weight: 700;
     color: white;
 }
+
+.foster-controller li.disabled {
+    color: #b0b0b0;
+    /* 회색 */
+    cursor: default;
+    pointer-events: none;
+    /* 클릭 완전 차단 */
+}
+
 
 .card-title {
     margin: 8px 0px 8px 0px;
@@ -379,6 +443,15 @@
 
 .card-icon {
     font-size: 12px;
+}
+
+.icon-box.is-off {
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+
+.icon-box.is-on {
+    opacity: 1;
 }
 
 .icon-red {
@@ -394,7 +467,7 @@
 
 .icon-blue {
     display: inline-block;
-    background-color: var(--color--primary);
+    background-color: var(--color-primary);
     border-radius: 50px;
     padding: 6px 12px;
     text-align: center;
@@ -406,8 +479,8 @@
 /* 긴급 지원이 필요한 보호소 영역 */
 .shelter-container {
     margin: 12px 0px 12px 0px;
-    width: var(--max--width);
-    background-color: var(--bg--common);
+    width: var(--layout-max-width);
+    background-color: var(--color-bg-common);
     border-radius: 12px;
     padding: 8px 24px 24px 24px;
 }
@@ -422,110 +495,4 @@
 
 .shelter-title>p {
     font-weight: bold;
-}
-
-/* 보호소 카드 영역 */
-.shelter-flex {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 24px;
-}
-
-.shelter-card {
-    border: 1px solid red;
-    border-radius: var(--border-radius__card);
-    height: 400px;
-    min-width: 370px;
-}
-
-.shelter-card-top {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-bottom: 1px solid red;
-    height: 30%;
-    background: linear-gradient(to right, coral, rgb(255, 28, 8));
-    border-radius: 10px 10px 0px 0px;
-}
-
-.shelter-img {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-}
-
-.shelter-name {
-    padding: 14px;
-    font-size: 18px;
-}
-
-.shelter-address {
-    padding: 0px 14px 0px 14px;
-    color: var(--color--subtext);
-    font-weight: 500;
-
-}
-
-.shelter-graph {
-    display: flex;
-    position: relative;
-    width: 90%;
-}
-
-.shelter-graph>div {
-    margin-top: 10%;
-    background-color: lightgray;
-    border-radius: 50px;
-    width: 100%;
-    height: 25px;
-    margin-left: 35px;
-}
-
-.shelter-graph>span {
-    margin-top: 10%;
-    background: linear-gradient(to right, red, rgb(112, 7, 7));
-    border-radius: 50px 0px 0px 50px;
-    width: 10%;
-    height: 25px;
-    margin-left: 35px;
-    position: absolute;
-}
-
-.shelter-flex-num {
-    margin-top: 50px;
-    display: flex;
-    justify-content: space-around;
-    color: rgb(221, 13, 13);
-    font-weight: bold;
-    font-size: 24px;
-}
-
-.shelter-flex-text {
-    display: flex;
-    justify-content: space-around;
-    color: var(--color--subtext);
-    font-weight: bold;
-}
-
-/* 보호소 인포 영역 */
-.shelter-info {
-    border: 1px solid var(--border--color);
-    border-radius: var(--border-radius__card);
-    padding: 30px 30px 50px 30px;
-    margin-top: 24px;
-}
-
-.info-card {
-    background-color: #ffe6b9;
-    border-radius: var(--border-radius__card);
-    padding: 20px;
-    font-weight: bold;
-}
-
-.info-list {
-    margin: 12px 0px 12px 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-weight: 500;
 }

@@ -35,12 +35,18 @@ async function updateDashboardCards() {
         let localActing = 0;
         let localExpert = 0;
 
-        // isAvailable : true 카운트
+        // isAvailable : true 기준 카운트 시작
         for (let i = 0; i < fosterData.length; i++) {
             if (fosterData[i].fosterInfo?.isAvailable === true) {
                 fosterActing += 1;
-            }
-        };
+                // 활동중에서 지역 활동자 카운트
+                // 1. 로그인된 사용자 지역 검증
+                // 2. 검증된 지역 값과 비교
+                // if (fosterData[i].fosterInfo?.address === ) {console.log("");
+                // }
+
+            }};
+
 
         // TODO: 현재지역 활동중, 현재지역 숙련자 카운트 로직 추가 필요
         // 현재는 임시 데이터 사용

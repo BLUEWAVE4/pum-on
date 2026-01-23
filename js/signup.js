@@ -1,14 +1,15 @@
 // Firebase 프로젝트 연동에 필요한 정보 초기화
 const firebaseConfig = {
-  apiKey: "AIzaSyAt--9h09hNdT2TWbggtLDUdAtFPAmy7zs",
-  authDomain: "pum--on.firebaseapp.com",
-  databaseURL: "https://pum--on-default-rtdb.firebaseio.com",
-  projectId: "pum--on",
-  storageBucket: "pum--on.firebasestorage.app",
-  messagingSenderId: "248020913979",
-  appId: "1:248020913979:web:83057bd1d0784f3f62b11e",
-  measurementId: "G-25ZZ8NW2C5"
+  apiKey: "AIzaSyDYFN5ZUXGLX0IhRu8tvMbtQjysavlzSLI",
+  authDomain: "pum-test2.firebaseapp.com",
+  databaseURL: "https://pum-test2-default-rtdb.firebaseio.com",
+  projectId: "pum-test2",
+  storageBucket: "pum-test2.firebasestorage.app",
+  messagingSenderId: "99680263012",
+  appId: "1:99680263012:web:35c514bcacdcddd46c7871",
+  measurementId: "G-37KBNRPFWC"
 };
+
 
 // Initialize Firebase (객체생성)
 const app = firebase.initializeApp(firebaseConfig);

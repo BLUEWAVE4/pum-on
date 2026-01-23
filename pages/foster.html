@@ -5,38 +5,81 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>임시보호자 현황</title>
-  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/index.css" />
+  <link rel="stylesheet" href="../css/common.css" />
   <link rel="stylesheet" href="../css/foster-style.css" />
   <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="module" src="../js/foster-dashboard.js" defer></script>
-  <script src="../js/foster-filter.js" defer></script>
-  <script type="module" src="../js/api-index.js" defer></script>
-  <script src="../js/nav_underline.js" defer></script>
-  <script src="../js/foster-list.js" defer></script>
+  <script type="module" src="../js/foster-dashboard.js"></script>
+  <script type="module" src="../js/api-index.js"></script>
+  <script type="module" src="../js/auth-state.js"></script>
+  <script type="module" src="../js/foster-availability.sync.js"></script>
+  <script type="module" src="../js/foster-filter.js" defer></script>
+  <script src="../js/accOptions.js" defer></script>
+  <script src="../js/lowPolyMap.js" defer></script>
+  <!-- 더미생성코드 -->
+  <!-- <script type="module" src="../js/seed-foster-dummy.js" defer></script> -->
+
 </head>
 
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="/" class="brand-logo">
-        <img src="../assets/images/header-logo.svg" alt="브랜드로고">
-      </a>
-      <!-- 네비 메뉴 -->
-      <nav class="main-nav">
-        <ul class="nav-list">
-          <li><a href="../index.html">홈</a></li>
-          <li><a href="./shelter">보호소</a></li>
-          <li><a href="/animal">입양동물</a></li>
-          <li><a href="./foster.html" class="active">임시보호자</a></li>
-        </ul>
-      </nav>
+  <header class="wrap" id="header">
+    <div class="container">
+      <!-- logo area -->
+      <div class="logo">
+        <a href="./index.html"><img src="../assets/images/header-logo.svg" alt="logo"></a>
+      </div>
+      <!-- menu area -->
+      <ul class="nav-wrapper">
+        <li class="select">
+          <a href="/about" class="link">홈</a>
+        </li>
+        <li class="select">
+          <a href="/services" class="link">보호소</a>
+        </li>
+        <li class="select">
+          <a href="/shelters" class="link">입양동물</a>
+        </li>
+        <li class="select">
+          <a href="/pages/foster.html" class="link">임시보호자</a>
+        </li>
+      </ul>
+      <!-- account area -->
+      <div class="acc-action">
 
-      <div class="auth-actions">
-        <a href="/login">로그인</a>
-        <a href="/signup" class="btn-primary">회원가입</a>
+        <!-- 비로그인 상태 -->
+        <div class="acc-guest" id="accGuest">
+          <a href="../pages/login.html" class="btn-login">로그인</a>
+          <a href="../pages/signup.html" class="btn-signup">회원가입</a>
+        </div>
+
+        <!-- 로그인 상태 -->
+        <div class="acc-flex" id="accUser" style="display:none;">
+          <div class="acc-trigger" id="accTrigger">
+            <div class="acc">
+              <img src="../assets/images/account.svg">
+            </div>
+            <div class="name-action">
+              <div class="t-M" id="accName">가나디</div>
+              <div class="t-S" id="accRole">임시 보호자</div>
+            </div>
+          </div>
+
+          <ul class="options t-M" id="accOptions">
+            <li class="link4">
+              <label class="chkLabel" for="protectable">
+                <input type="checkbox" id="protectable">
+                <span class="checkmark"></span>
+                임시보호 가능
+              </label>
+            </li>
+            <li class="link3"><a href="">정보 수정</a></li>
+            <li class="link3"><button id="logoutBtn">로그아웃</button></li>
+          </ul>
+        </div>
+
       </div>
     </div>
   </header>
@@ -126,83 +169,16 @@
         <div class="foster-wrapper">
           <div class="foster-list">
             <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
-              </div>
-              <strong class="list-title">김민수</strong>
-              <div class="list-flex">
-                <span class="list-region local-match">서울특별시 강남구</span>
-                <span>강아지</span>
-                <span>3개월</span>
-                <span>010-1234-5678</span>
-              </div>
-              <div class="list-document">
-                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
-              </div>
-            </div>
-            <div class="foster-list-detail">
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">경력</span>
-                  <span class="detail-value">3년 (12회 보호 경험)</span>
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">주거환경</span>
-                  <span class="detail-value">아파트, 마당 없음</span>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">가족구성</span>
-                  <span class="detail-value">2인 가구, 반려동물 없음</span>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
                 </div>
-                <div class="detail-item">
-                  <span class="detail-label">특이사항</span>
-                  <span class="detail-value">노령견 케어 가능, 약물 투여 경험 있음</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="foster-list">
-            <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
-              </div>
-              <strong class="list-title">이서연</strong>
-              <div class="list-flex">
-                <span class="list-region">경기도 성남시</span>
-                <span>고양이</span>
-                <span>6개월</span>
-                <span>010-2345-6789</span>
-              </div>
-              <div class="list-document">
-                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
-              </div>
-            </div>
-            <div class="foster-list-detail">
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">경력</span>
-                  <span class="detail-value">1년 (5회 보호 경험)</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">주거환경</span>
-                  <span class="detail-value">빌라, 베란다 있음</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">가족구성</span>
-                  <span class="detail-value">1인 가구, 고양이 1마리</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">특이사항</span>
-                  <span class="detail-value">새끼 고양이 케어 전문</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="foster-list">
-            <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
-                <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
               </div>
               <strong class="list-title">박지훈</strong>
               <div class="list-flex">
@@ -238,15 +214,23 @@
           </div>
           <div class="foster-list">
             <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="기타">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
               </div>
-              <strong class="list-title">최유진</strong>
+              <strong class="list-title">박지훈</strong>
               <div class="list-flex">
-                <span class="list-region">인천광역시 연수구</span>
-                <span>토끼</span>
-                <span>2개월</span>
-                <span>010-4567-8901</span>
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
               </div>
               <div class="list-document">
                 <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
@@ -256,119 +240,7 @@
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-label">경력</span>
-                  <span class="detail-value">6개월 (2회 보호 경험)</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">주거환경</span>
-                  <span class="detail-value">아파트, 베란다 있음</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">가족구성</span>
-                  <span class="detail-value">2인 가구, 토끼 1마리</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">특이사항</span>
-                  <span class="detail-value">소동물 전문</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="foster-list">
-            <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
-              </div>
-              <strong class="list-title">정하은</strong>
-              <div class="list-flex">
-                <span class="list-region">대전광역시 유성구</span>
-                <span>강아지</span>
-                <span>4개월</span>
-                <span>010-5678-9012</span>
-              </div>
-              <div class="list-document">
-                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
-              </div>
-            </div>
-            <div class="foster-list-detail">
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">경력</span>
-                  <span class="detail-value">1년 (4회 보호 경험)</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">주거환경</span>
-                  <span class="detail-value">아파트, 마당 없음</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">가족구성</span>
-                  <span class="detail-value">3인 가구, 반려동물 없음</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">특이사항</span>
-                  <span class="detail-value">중형견 선호</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="foster-list">
-            <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
-              </div>
-              <strong class="list-title">강도윤</strong>
-              <div class="list-flex">
-                <span class="list-region">광주광역시 서구</span>
-                <span>고양이</span>
-                <span>5개월</span>
-                <span>010-6789-0123</span>
-              </div>
-              <div class="list-document">
-                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
-              </div>
-            </div>
-            <div class="foster-list-detail">
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">경력</span>
-                  <span class="detail-value">2년 (7회 보호 경험)</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">주거환경</span>
-                  <span class="detail-value">빌라, 베란다 있음</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">가족구성</span>
-                  <span class="detail-value">1인 가구, 고양이 2마리</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">특이사항</span>
-                  <span class="detail-value">다묘 가정 경험 풍부</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="foster-list">
-            <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
-                <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="기타">
-              </div>
-              <strong class="list-title">윤서준</strong>
-              <div class="list-flex">
-                <span class="list-region">대구광역시 수성구</span>
-                <span>강아지, 햄스터</span>
-                <span>3개월</span>
-                <span>010-7890-1234</span>
-              </div>
-              <div class="list-document">
-                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
-              </div>
-            </div>
-            <div class="foster-list-detail">
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <span class="detail-label">경력</span>
-                  <span class="detail-value">1년 6개월 (6회 보호 경험)</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">주거환경</span>
@@ -380,22 +252,30 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">특이사항</span>
-                  <span class="detail-value">다양한 동물 케어 가능</span>
+                  <span class="detail-value">대형견 케어 가능</span>
                 </div>
               </div>
             </div>
           </div>
           <div class="foster-list">
             <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
               </div>
-              <strong class="list-title">임예린</strong>
+              <strong class="list-title">박지훈</strong>
               <div class="list-flex">
-                <span class="list-region">울산광역시 남구</span>
-                <span>고양이</span>
-                <span>6개월</span>
-                <span>010-8901-2345</span>
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
               </div>
               <div class="list-document">
                 <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
@@ -405,34 +285,42 @@
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-label">경력</span>
-                  <span class="detail-value">3년 (10회 보호 경험)</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">주거환경</span>
-                  <span class="detail-value">아파트, 베란다 있음</span>
+                  <span class="detail-value">단독주택, 마당 있음</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">가족구성</span>
-                  <span class="detail-value">2인 가구, 고양이 1마리</span>
+                  <span class="detail-value">4인 가구, 강아지 1마리</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">특이사항</span>
-                  <span class="detail-value">병원 동행 가능, TNR 경험 있음</span>
+                  <span class="detail-value">대형견 케어 가능</span>
                 </div>
               </div>
             </div>
           </div>
           <div class="foster-list">
             <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
               </div>
-              <strong class="list-title">한지민</strong>
+              <strong class="list-title">박지훈</strong>
               <div class="list-flex">
-                <span class="list-region">세종특별자치시</span>
-                <span>강아지</span>
-                <span>2개월</span>
-                <span>010-9012-3456</span>
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
               </div>
               <div class="list-document">
                 <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
@@ -442,36 +330,42 @@
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-label">경력</span>
-                  <span class="detail-value">6개월 (2회 보호 경험)</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">주거환경</span>
-                  <span class="detail-value">아파트, 마당 없음</span>
+                  <span class="detail-value">단독주택, 마당 있음</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">가족구성</span>
-                  <span class="detail-value">2인 가구, 반려동물 없음</span>
+                  <span class="detail-value">4인 가구, 강아지 1마리</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">특이사항</span>
-                  <span class="detail-value">소형견 선호</span>
+                  <span class="detail-value">대형견 케어 가능</span>
                 </div>
               </div>
             </div>
           </div>
           <div class="foster-list">
             <div class="foster-list-main">
-              <div class="icon-box">
-                <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
-                <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
-                <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="기타">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
               </div>
-              <strong class="list-title">오현우</strong>
+              <strong class="list-title">박지훈</strong>
               <div class="list-flex">
-                <span class="list-region">제주특별자치도 제주시</span>
-                <span>전체</span>
-                <span>6개월</span>
-                <span>010-0123-4567</span>
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
               </div>
               <div class="list-document">
                 <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
@@ -481,39 +375,125 @@
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-label">경력</span>
-                  <span class="detail-value">5년 (20회 보호 경험)</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">주거환경</span>
-                  <span class="detail-value">단독주택, 넓은 마당</span>
+                  <span class="detail-value">단독주택, 마당 있음</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">가족구성</span>
-                  <span class="detail-value">3인 가구, 강아지 2마리, 고양이 1마리</span>
+                  <span class="detail-value">4인 가구, 강아지 1마리</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">특이사항</span>
-                  <span class="detail-value">모든 동물 케어 가능, 숙련자</span>
+                  <span class="detail-value">대형견 케어 가능</span>
                 </div>
               </div>
             </div>
           </div>
-          <div>
-            <!-- 페이지 컨트롤러 -->
-            <div class="foster-pagenation">
-              <a href="#">&lt;</a>
-              <ul class="foster-controller">
-                <li>1</li>
-                <li>2</li>
-                <li>3</li>
-                <li>4</li>
-                <li>5</li>
-              </ul>
-              <a href="#">></a>
+          <div class="foster-list">
+            <div class="foster-list-main">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
+              </div>
+              <strong class="list-title">박지훈</strong>
+              <div class="list-flex">
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
+              </div>
+              <div class="list-document">
+                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
+              </div>
             </div>
+            <div class="foster-list-detail">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">경력</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">주거환경</span>
+                  <span class="detail-value">단독주택, 마당 있음</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">가족구성</span>
+                  <span class="detail-value">4인 가구, 강아지 1마리</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">특이사항</span>
+                  <span class="detail-value">대형견 케어 가능</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="foster-list">
+            <div class="foster-list-main">
+              <div class="icon-flex">
+                <div class="icon-box">
+                  <img class="foster-icon-dog" src="../assets/images/foster-dog-icon.webp" alt="강아지">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-cat" src="../assets/images/foster-cat-icon.webp" alt="고양이">
+                </div>
+                <div class="icon-box">
+                  <img class="foster-icon-etc" src="../assets/images/foster-etc-icon.webp" alt="고양이">
+                </div>
+              </div>
+              <strong class="list-title">박지훈</strong>
+              <div class="list-flex">
+                <span class="list-region">부산광역시 해운대구</span>
+                <span>강아지, 고양이</span>
+                <span>1개월</span>
+                <span>010-3456-7890</span>
+              </div>
+              <div class="list-document">
+                <img src="../assets/images/foster-document-icon.svg" alt="서류 아이콘">
+              </div>
+            </div>
+            <div class="foster-list-detail">
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">경력</span>
+                  <span class="detail-value">2년 (8회 보호 경험)</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">주거환경</span>
+                  <span class="detail-value">단독주택, 마당 있음</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">가족구성</span>
+                  <span class="detail-value">4인 가구, 강아지 1마리</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">특이사항</span>
+                  <span class="detail-value">대형견 케어 가능</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div>
+          <!-- 페이지 컨트롤러 -->
+          <div class="foster-pagenation">
+            <a href="#" class="pg-prev">&lt;</a>
+            <ul class="foster-controller"></ul>
+            <a href="#" class="pg-next">&gt;</a>
           </div>
         </div>
       </div>
+    </div>
   </main>
 
   <footer class="site-footer">
