@@ -1,15 +1,18 @@
 ///////////////////////////////////////////////
+// Firebase Compat SDK 초기화
+// ⚠️ 중앙 설정: firebase-init.js 참조
 ///////////////////////////////////////////////
+
+// Firebase 설정 (pum-test3)
 const firebaseConfig = {
-    apiKey: "AIzaSyAt--9h09hNdT2TWbggtLDUdAtFPAmy7zs",
-    authDomain: "pum--on.firebaseapp.com",
-    databaseURL: "https://pum--on-default-rtdb.firebaseio.com",
-    projectId: "pum--on",
-    storageBucket: "pum--on.firebasestorage.app",
-    messagingSenderId: "248020913979",
-    appId: "1:248020913979:web:83057bd1d0784f3f62b11e",
-    measurementId: "G-25ZZ8NW2C5",
-    databaseURL: "https://pum--on-default-rtdb.firebaseio.com/"
+  apiKey: "AIzaSyABz-oFmsh5QFp8oYzWkz2530478LL8wOA",
+  authDomain: "pum-test3.firebaseapp.com",
+  databaseURL: "https://pum-test3-default-rtdb.firebaseio.com",
+  projectId: "pum-test3",
+  storageBucket: "pum-test3.firebasestorage.app",
+  messagingSenderId: "835661739835",
+  appId: "1:835661739835:web:f657319388ed15528aa91e",
+  measurementId: "G-KNLPNK3S5D"
 };
 
 const app = firebase.initializeApp(firebaseConfig);
@@ -17,10 +20,10 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 ///////////////////////////////////////////////
+// 인증 관련 함수
 ///////////////////////////////////////////////
 
 // 로그인 상태검증 함수
-// 로그인 상태 콘솔창에서 확인 가능
 async function checkAuth(requiredUserType = null) {
     return new Promise((resolve, reject) => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -38,7 +41,6 @@ async function checkAuth(requiredUserType = null) {
                     reject('Not logged in');
                     return;
                 }
-
 
                 const snapshot = await database.ref('users/' + user.uid).once('value');
                 const userData = snapshot.val();
@@ -77,14 +79,3 @@ async function checkAuth(requiredUserType = null) {
 // - "shelter" 또는 "foster": 해당 권한만 허용
 // - resolve: 로그인 성공 + 권한 있음
 // - reject: 로그인 안 됨 또는 권한 없음
-
-
-// 1. 기본 로그인 상태 검증
-// checkAuth();
-
-// 2. 보호소 계정만 접근 가능
-// checkAuth("shelter").then((userData) => {
-// console.log('보호소 로그인 확인:', userData);}).catch(error => {
-//     console.error('Auth check failed:', error);
-//   });
-

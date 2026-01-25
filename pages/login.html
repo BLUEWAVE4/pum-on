@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인 - 품:ON</title>
+  <link rel="stylesheet" href="../css/common.css" />
+  <link rel="stylesheet" href="../css/login.css" />
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="../index.html" class="brand" aria-label="홈으로 이동">
+        <img class="logo" src="../assets/images/ci.svg" alt="로고" />
+      </a>
+
+      <nav class="main-nav" aria-label="주요 메뉴">
+        <ul class="nav-list">
+          <li><a href="../index.html">홈</a></li>
+          <li><a href="/shelters">보호소</a></li>
+          <li><a href="/animals">입양동물</a></li>
+          <li><a href="./foster.html">임시보호</a></li>
+        </ul>
+      </nav>
+
+      <div class="auth-actions">
+        <a href="./login.html" class="btn-login">로그인</a>
+        <a href="./signup-test.html" class="btn-signup">회원가입</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="login-page">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <h1>로그인</h1>
+          <p class="login-subtitle">품:ON에 오신 것을 환영합니다</p>
+        </div>
+
+        <form class="login-form" id="loginForm">
+          <div class="form-group">
+            <label for="email">이메일</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="이메일을 입력하세요"
+              required
+              autocomplete="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="비밀번호를 입력하세요"
+              required
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" id="rememberMe" />
+              <span>로그인 상태 유지</span>
+            </label>
+            <a href="#" class="forgot-password">비밀번호 찾기</a>
+          </div>
+
+          <button type="submit" class="btn-login-submit" id="loginBtn">
+            로그인
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p>아직 회원이 아니신가요? <a href="./signup-test.html" class="link-signup">회원가입</a></p>
+        </div>
+
+        <div class="divider">
+          <span>또는</span>
+        </div>
+
+        <div class="social-login">
+          <button class="btn-social btn-google" type="button">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9.003 18z" fill="#34A853"/>
+              <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+              <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+            </svg>
+            Google로 로그인
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-right">
+        <div class="policy-links">
+          <a href="/terms">이용약관</a>
+          <span aria-hidden="true">·</span>
+          <a href="/privacy">개인정보처리방침</a>
+        </div>
+        <p class="copyright">© 2026 품:ON. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+
+  <!-- Scripts -->
+  <script src="../js/firebase-auth.js"></script>
+  <script src="../js/login.js"></script>
+</body>
+
+</html>

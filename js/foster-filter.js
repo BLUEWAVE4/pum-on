@@ -1,16 +1,31 @@
-import { db } from "./firebase-config.js";
-import {
-    ref,
-    get,
-    query,
-    orderByChild,
-    equalTo,
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import fosterDataManager from "./foster-data-manager.js";
+
+/* =========================
+   로딩 스피너 헬퍼 함수
+========================= */
+function showListLoading() {
+  if (!$listWrap) return;
+  $listWrap.innerHTML = `
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <p class="loading-text">임시보호자 정보를 불러오는 중...</p>
+    </div>
+  `;
+}
+
+function hideListLoading() {
+  if (!$listWrap) return;
+  const spinner = $listWrap.querySelector('.loading-spinner');
+  if (spinner) spinner.remove();
+}
 
 /* =========================
    설정
 ========================= */
 const PAGE_SIZE = 10;
+
+// 사용자 지역 (기본값)
+let userRegion = null;
 
 /* =========================
    DOM
@@ -53,27 +68,15 @@ if (!$paginationWrap || !$pageList || !$btnPrevFinal || !$btnNextFinal) {
 /* =========================
    상태
 ========================= */
-let fostersCache = null;   // firebase에서 가져온 foster 전체
 let filteredCache = [];   // 필터 적용 후
 let currentPage = 1;
 
 /* =========================
-   Firebase: foster만 조회
-   - rules에 users: { ".indexOn": ["userType"] } 필요
+   중앙 데이터 관리자에서 데이터 가져오기
 ========================= */
-async function fetchFosters() {
-    const usersRef = ref(db, "users");
-    const q = query(usersRef, orderByChild("userType"), equalTo("foster"));
-    const snap = await get(q);
-
-    if (!snap.exists()) return [];
-
-    const obj = snap.val(); // {uid: {userType, fosterInfo...}, ...}
-    return Object.entries(obj).map(([uid, user]) => ({
-        uid,
-        fosterInfo: user.fosterInfo ?? {},
-        userType: user.userType ?? "",
-    }));
+function getFostersData() {
+    // 중앙 데이터 관리자 사용 - RTDB 접근 최소화
+    return fosterDataManager.getData() || [];
 }
 
 /* =========================
@@ -174,17 +177,19 @@ function preferAnimalsToKoreanText(preferSet) {
    필터 적용
 ========================= */
 function applyFilters(list, { areaKey, animalKey, periodKey }) {
-    return list.filter((u) => {
+    const filtered = list.filter((u) => {
         const info = u.fosterInfo ?? {};
 
         // 활동 가능만(활동 중 임시보호자)
         if (info.isAvailable !== true) return false;
 
-        // 지역
+        // 지역 필터
+        // areaKey가 있으면 (전체 지역이 아니면) 해당 지역으로 필터링
         if (areaKey) {
             const address = String(info.address ?? "");
             if (!address.includes(areaKey)) return false;
         }
+        // areaKey가 없으면 전체 지역 표시 (필터링 안 함)
 
         // 동물
         const preferSet = parsePreferAnimals(info.preferAnimals);
@@ -198,6 +203,15 @@ function applyFilters(list, { areaKey, animalKey, periodKey }) {
 
         return true;
     });
+
+    // 경력 연수 높은 순으로 정렬 (숙련자 우선)
+    filtered.sort((a, b) => {
+        const yearsA = Number(a.fosterInfo?.experienceYears ?? 0);
+        const yearsB = Number(b.fosterInfo?.experienceYears ?? 0);
+        return yearsB - yearsA; // 내림차순
+    });
+
+    return filtered;
 }
 
 /* =========================
@@ -236,6 +250,9 @@ function renderFosterListPage() {
 
     const pageItems = getPageSlice(filteredCache, currentPage);
 
+    // 로딩 스피너 제거 (데이터 로드 완료)
+    hideListLoading();
+
     $listWrap.innerHTML = "";
 
     if (pageItems.length === 0) {
@@ -260,6 +277,7 @@ function renderFosterListPage() {
         const address = info.address ?? "지역 미등록";
         const maxPeriod = info.maxPeriod ?? "-";
         const phone = info.phone ? String(info.phone) : "-";
+        const experienceYears = Number(info.experienceYears ?? 0);
 
         const preferSet = parsePreferAnimals(info.preferAnimals);
         const preferKo = preferAnimalsToKoreanText(preferSet);
@@ -267,6 +285,11 @@ function renderFosterListPage() {
         const dogOn = preferSet.has("dog");
         const catOn = preferSet.has("cat");
         const etcOn = preferSet.has("etc");
+
+        // 경력 기간 표시 (2년 이상이면 숙련자 파란색, 그 외는 회색)
+        const isExpert = experienceYears >= 2;
+        const experienceClass = isExpert ? 'experience-years' : 'experience-years-novice';
+        const experienceLabel = `<span class="${experienceClass}">${experienceYears}</span>`;
 
         return `
       <div class="foster-list" data-uid="${escapeHtml(u.uid)}">
@@ -283,7 +306,7 @@ function renderFosterListPage() {
             </div>
           </div>
 
-          <strong class="list-title">${escapeHtml(name)}</strong>
+          <strong class="list-title">${escapeHtml(name)} ${experienceLabel}</strong>
 
           <div class="list-flex">
             <span class="list-region">${escapeHtml(address)}</span>
@@ -415,15 +438,17 @@ function bindFilterEvents() {
 /* =========================
    메인 업데이트
 ========================= */
-async function updateListByFilter({ forceFetch = false } = {}) {
+function updateListByFilter() {
     try {
+        // 로딩 스피너 표시
+        showListLoading();
+
         const areaKey = normalizeArea($area?.value);
         const animalKey = normalizeAnimal($animal?.value);
         const periodKey = normalizePeriod($period?.value);
 
-        if (forceFetch || !fostersCache) {
-            fostersCache = await fetchFosters();
-        }
+        // 중앙 데이터 관리자에서 캐시된 데이터 가져오기
+        const fostersCache = getFostersData();
 
         filteredCache = applyFilters(fostersCache, { areaKey, animalKey, periodKey });
 
@@ -452,15 +477,124 @@ async function updateListByFilter({ forceFetch = false } = {}) {
 }
 
 /* =========================
-   초기 실행
+   중앙 데이터 관리자 구독 및 초기화
 ========================= */
-bindPaginationEvents();
-bindFilterEvents();
-updateListByFilter({ forceFetch: true });
+// 중앙 데이터 관리자 초기화 대기 후 구독
+(async function initFilterModule() {
+    try {
+        // 초기 로딩 스피너 표시
+        showListLoading();
+
+        // 초기화 완료 대기
+        await fosterDataManager.waitForInit();
+
+        // 사용자 지역 가져오기
+        userRegion = await getUserRegion();
+        console.log(`[foster-filter] 사용자 지역: ${userRegion}`);
+
+        // select 박스 기본값을 사용자 지역으로 설정
+        if (userRegion && $area) {
+            const regionValue = getAreaValueByRegion(userRegion);
+            if (regionValue) {
+                $area.value = regionValue;
+                console.log(`[foster-filter] 지역 필터 기본값 설정: ${regionValue}`);
+            }
+        }
+
+        // 데이터 변경 구독 - 자동 리스트 업데이트 (중복 방지)
+        fosterDataManager.subscribe((data) => {
+            console.log(`[foster-filter] 데이터 업데이트 감지: ${data?.length || 0}명`);
+            updateListByFilter();
+        }, 'foster-filter');
+
+        bindPaginationEvents();
+        bindFilterEvents();
+
+        // 초기 렌더링
+        updateListByFilter();
+    } catch (error) {
+        console.error("[foster-filter] 초기화 실패:", error);
+    }
+})();
+
+// ========== 지역명에서 select value 가져오기 ==========
+function getAreaValueByRegion(region) {
+    const map = {
+        "서울": "area-seoul",
+        "부산": "area-busan",
+        "대구": "area-daegu",
+        "인천": "area-incheon",
+        "광주": "area-gwangju",
+        "세종": "area-sejong",
+        "대전": "area-daejeon",
+        "울산": "area-ulsan",
+        "경기": "area-gyeonggi",
+        "강원": "area-gangwon",
+        "충북": "area-chungbuk",
+        "충남": "area-chungnam",
+        "전북": "area-jeonbuk",
+        "전남": "area-jeonnam",
+        "경북": "area-gyeongbuk",
+        "경남": "area-gyeongnam",
+        "제주": "area-jeju"
+    };
+    return map[region] || null;
+}
+
+// ========== 사용자 지역 가져오기 ==========
+async function getUserRegion() {
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            console.log('[foster-filter] 로그인하지 않은 사용자');
+            return null; // 로그인 안 했으면 지역 필터 적용 안 함
+        }
+
+        const snapshot = await database.ref('users/' + user.uid).once('value');
+        const userData = snapshot.val();
+
+        if (!userData || !userData.fosterInfo?.address) {
+            console.log('[foster-filter] 사용자 주소 정보 없음');
+            return null;
+        }
+
+        const address = userData.fosterInfo.address;
+        return extractRegionFromAddress(address);
+    } catch (error) {
+        console.error('[foster-filter] 사용자 지역 가져오기 실패:', error);
+        return null;
+    }
+}
+
+// ========== 주소에서 지역명 추출 ==========
+function extractRegionFromAddress(address) {
+    if (!address) return null;
+
+    const addr = String(address);
+
+    if (addr.includes("서울")) return "서울";
+    if (addr.includes("부산")) return "부산";
+    if (addr.includes("대구")) return "대구";
+    if (addr.includes("인천")) return "인천";
+    if (addr.includes("광주")) return "광주";
+    if (addr.includes("세종")) return "세종";
+    if (addr.includes("대전")) return "대전";
+    if (addr.includes("울산")) return "울산";
+    if (addr.includes("경기")) return "경기";
+    if (addr.includes("강원")) return "강원";
+    if (addr.includes("충북") || addr.includes("충청북도")) return "충북";
+    if (addr.includes("충남") || addr.includes("충청남도")) return "충남";
+    if (addr.includes("전북") || addr.includes("전라북도")) return "전북";
+    if (addr.includes("전남") || addr.includes("전라남도")) return "전남";
+    if (addr.includes("경북") || addr.includes("경상북도")) return "경북";
+    if (addr.includes("경남") || addr.includes("경상남도")) return "경남";
+    if (addr.includes("제주")) return "제주";
+
+    return null;
+}
 
 /* 필요 시 외부에서 강제 새로고침 */
 export function refreshFosterList() {
-    fostersCache = null;
     currentPage = 1;
-    return updateListByFilter({ forceFetch: true });
+    updateListByFilter();
 }

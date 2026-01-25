@@ -1,20 +1,5 @@
-// Firebase 프로젝트 연동에 필요한 정보 초기화
-const firebaseConfig = {
-  apiKey: "AIzaSyDYFN5ZUXGLX0IhRu8tvMbtQjysavlzSLI",
-  authDomain: "pum-test2.firebaseapp.com",
-  databaseURL: "https://pum-test2-default-rtdb.firebaseio.com",
-  projectId: "pum-test2",
-  storageBucket: "pum-test2.firebasestorage.app",
-  messagingSenderId: "99680263012",
-  appId: "1:99680263012:web:35c514bcacdcddd46c7871",
-  measurementId: "G-37KBNRPFWC"
-};
-
-
-// Initialize Firebase (객체생성)
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth(); // 인증 객체 생성
-const database = firebase.database(); // 실시간 데이터베이스 객체 생성
+// Firebase는 firebase-auth.js에서 초기화됨
+// auth와 database 객체는 전역으로 사용 가능
 
 /*
   [기능 정의]

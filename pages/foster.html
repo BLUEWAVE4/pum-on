@@ -12,13 +12,26 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Firebase SDK (가장 먼저 로드) -->
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-storage-compat.js"></script>
+
+  <!-- Firebase 초기화 -->
+  <script src="../js/firebase-auth.js"></script>
+
+  <!-- 중앙 데이터 관리자 초기화 -->
+  <script type="module" src="../js/foster-init.js"></script>
+  <!-- Foster 관련 모듈들 -->
   <script type="module" src="../js/foster-dashboard.js"></script>
   <script type="module" src="../js/api-index.js"></script>
   <script type="module" src="../js/auth-state.js"></script>
   <script type="module" src="../js/foster-availability.sync.js"></script>
-  <script type="module" src="../js/foster-filter.js" defer></script>
+  <script type="module" src="../js/foster-filter.js"></script>
   <script src="../js/accOptions.js" defer></script>
-  <script src="../js/lowPolyMap.js" defer></script>
+  <script src="../js/login.js" defer></script>
   <!-- 더미생성코드 -->
   <!-- <script type="module" src="../js/seed-foster-dummy.js" defer></script> -->
 

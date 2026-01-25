@@ -16,7 +16,28 @@ import {
   - preferAnimals 등 랜덤
 */
 
-const SEED_COUNT = 60; // 생성 인원 수 (원하는 숫자로 변경)
+// ============================================
+// 🗑️ 1회용: /users 전체 삭제 (사용 후 주석 처리)
+// ============================================
+async function deleteAllUsers() {
+  console.group("🗑️ /users 전체 삭제");
+  try {
+    const usersRef = ref(db, "users");
+    await remove(usersRef);
+    console.log("✅ 삭제 완료!");
+    console.groupEnd();
+  } catch (err) {
+    console.error("❌ 삭제 실패:", err);
+    console.groupEnd();
+  }
+}
+
+// 아래 주석 해제하여 실행 후 다시 주석 처리
+deleteAllUsers();
+
+// ============================================
+
+const SEED_COUNT = 145; // 생성 인원 수 (원하는 숫자로 변경)
 
 // 이미지처럼 시/도 목록(표준 명칭)
 const REGIONS = [
@@ -62,10 +83,10 @@ function randomKoreanName3() {
 }
 
 function randomPhone() {
-  // 010-XXXX-XXXX 형태에서 하이픈 없이 저장(당신 UI에 맞춤)
+  // 010-XXXX-XXXX 형태로 하이픈 포함
   const mid = String(rand(0, 9999)).padStart(4, "0");
   const last = String(rand(0, 9999)).padStart(4, "0");
-  return `010${mid}${last}`;
+  return `010-${mid}-${last}`;
 }
 
 function randomEmail(name) {
@@ -75,7 +96,19 @@ function randomEmail(name) {
 }
 
 function randomAddress() {
-  const region = pick(REGIONS);
+  // 경기도 20% 더 높게 (약 26%), 나머지 지역 균등 분배
+  const random = Math.random();
+  let region;
+
+  if (random < 0.26) {
+    // 26% 경기도
+    region = "경기도";
+  } else {
+    // 74% 나머지 지역 균등 분배
+    const otherRegions = REGIONS.filter(r => r !== "경기도");
+    region = pick(otherRegions);
+  }
+
   const district = pick(DISTRICTS);
   const town = pick(TOWNS);
   // 시/도 + 구/군 + 동 (간단)
@@ -92,6 +125,24 @@ function buildRandomFosterUser() {
   const phone = randomPhone();
   const email = randomEmail(name);
 
+  // 숙련자(2년 이상) 비율: 전체의 15% 미만 (약 13%)
+  const random = Math.random();
+  let hasExperience, experienceYears;
+
+  if (random < 0.13) {
+    // 13% 숙련자 (2년 이상)
+    hasExperience = true;
+    experienceYears = rand(2, 8);
+  } else if (random < 0.40) {
+    // 27% 경험 있지만 초보 (1년)
+    hasExperience = true;
+    experienceYears = 1;
+  } else {
+    // 60% 경험 없음
+    hasExperience = false;
+    experienceYears = 0;
+  }
+
   return {
     userType: "foster",
     email,
@@ -104,8 +155,8 @@ function buildRandomFosterUser() {
       cert: "cert-dog",                 // 필요하면 cert도 랜덤화 가능
       certNumber: String(rand(100000000, 999999999)),
 
-      experience: pick(["Y", "N"]),
-      experienceYears: rand(0, 8),
+      experience: hasExperience ? "Y" : "N",
+      experienceYears: experienceYears,
 
       isAvailable: true,
       maxPeriod: pick(PERIODS),
