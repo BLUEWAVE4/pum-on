@@ -187,7 +187,28 @@ function applyFilters(list, { areaKey, animalKey, periodKey }) {
         // areaKey가 있으면 (전체 지역이 아니면) 해당 지역으로 필터링
         if (areaKey) {
             const address = String(info.address ?? "");
-            if (!address.includes(areaKey)) return false;
+            // 각 지역별 전체 명칭과 약칭 모두 매칭
+            let matched = false;
+
+            if (areaKey === "서울" && (address.includes("서울") || address.includes("서울특별시"))) matched = true;
+            else if (areaKey === "부산" && (address.includes("부산") || address.includes("부산광역시"))) matched = true;
+            else if (areaKey === "대구" && (address.includes("대구") || address.includes("대구광역시"))) matched = true;
+            else if (areaKey === "인천" && (address.includes("인천") || address.includes("인천광역시"))) matched = true;
+            else if (areaKey === "광주" && (address.includes("광주") || address.includes("광주광역시"))) matched = true;
+            else if (areaKey === "세종" && (address.includes("세종") || address.includes("세종특별자치시"))) matched = true;
+            else if (areaKey === "대전" && (address.includes("대전") || address.includes("대전광역시"))) matched = true;
+            else if (areaKey === "울산" && (address.includes("울산") || address.includes("울산광역시"))) matched = true;
+            else if (areaKey === "경기" && (address.includes("경기") || address.includes("경기도"))) matched = true;
+            else if (areaKey === "강원" && (address.includes("강원") || address.includes("강원도") || address.includes("강원특별자치도"))) matched = true;
+            else if (areaKey === "충북" && (address.includes("충북") || address.includes("충청북도"))) matched = true;
+            else if (areaKey === "충남" && (address.includes("충남") || address.includes("충청남도"))) matched = true;
+            else if (areaKey === "전북" && (address.includes("전북") || address.includes("전라북도") || address.includes("전북특별자치도"))) matched = true;
+            else if (areaKey === "전남" && (address.includes("전남") || address.includes("전라남도"))) matched = true;
+            else if (areaKey === "경북" && (address.includes("경북") || address.includes("경상북도"))) matched = true;
+            else if (areaKey === "경남" && (address.includes("경남") || address.includes("경상남도"))) matched = true;
+            else if (areaKey === "제주" && (address.includes("제주") || address.includes("제주특별자치도"))) matched = true;
+
+            if (!matched) return false;
         }
         // areaKey가 없으면 전체 지역 표시 (필터링 안 함)
 
