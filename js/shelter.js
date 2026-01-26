@@ -1,21 +1,20 @@
 /*
-1. 전역변수 49
-2. 페이지네이션 상태 64
-3. Firebase 로드 75
-4. 압박지수 계산 92
-5. 필터 181
-6. 리스트 생성 229
-7. 정렬 259
-8. 이미지 매칭 333
-9. 카드 렌더링 365
-10. 페이지네이션 422
-11. 차트 479
-12. 모달 513
-13. 대시보드 525
-14. 차트 유틸 807
-15. 카카오맵 859
+1. 전역변수
+2. 페이지네이션 상태
+3. Firebase 로드
+4. 압박지수 계산
+5. 필터
+6. 리스트 생성
+7. 정렬
+8. 이미지 매칭
+9. 카드 렌더링
+10. 페이지네이션
+11. 차트
+12. 모달
+13. 대시보드
+14. 차트 유틸
+15. 카카오맵
 */
-
 const params = new URLSearchParams(window.location.search);
 const petId = params.get("id");
 
@@ -30,8 +29,23 @@ const firebaseConfig = {
   measurementId: "G-4PC46EPXM2"
 };
 
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// 로딩 기능
+function hideLoading() {
+  const loading = document.getElementById("loadingOverlay");
+  if (!loading) return;
+
+  loading.style.opacity = "0";
+  loading.style.transition = "opacity 0.4s ease";
+
+  setTimeout(() => {
+    loading.style.display = "none";
+  }, 400);
+}
+
 
 db.ref("rescuedAnimals/shelters/list")
   .once("value")
@@ -86,6 +100,8 @@ db.ref("rescuedAnimals/shelters/list").on("value", snap => {
 
   const dashboardSection = document.querySelector(".dashboard-section");
   if (dashboardSection) observer.observe(dashboardSection);
+
+  hideLoading();
 });
 
 /*************************
