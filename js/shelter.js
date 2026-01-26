@@ -3,13 +3,19 @@
 2. 페이지네이션 상태
 3. Firebase 로드
 4. 압박지수 계산
+
+[ UI State 변경 로직 ]
 5. 필터
 6. 리스트 생성
 7. 정렬
+
 8. 이미지 매칭
+
+[ 렌더링 전용 영역 ]
 9. 카드 렌더링
 10. 페이지네이션
 11. 차트
+
 12. 모달
 13. 대시보드
 14. 차트 유틸
@@ -19,6 +25,7 @@
 const params = new URLSearchParams(window.location.search);
 const shelterId = params.get("id");
 
+// firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyAd8SAQ0KtmsTPr9Fgw7-NxRtZNYt6O0q4",
   authDomain: "pum-on.firebaseapp.com",
