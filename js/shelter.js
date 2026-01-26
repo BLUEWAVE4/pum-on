@@ -1,3 +1,20 @@
+/*
+1. 전역변수 45
+2. 페이지네이션 상태 60
+3. Firebase 로드 71
+4. 압박지수 계산 88
+5. 필터 177
+6. 리스트 생성 225
+7. 정렬 255
+8. 이미지 매칭 329
+9. 카드 렌더링 361
+10. 페이지네이션 418
+11. 차트 475
+12. 모달 509
+13. 대시보드 521
+14. 차트 유틸 803
+15. 카카오맵 855
+*/
 const firebaseConfig = {
   apiKey: "AIzaSyAd8SAQ0KtmsTPr9Fgw7-NxRtZNYt6O0q4",
   authDomain: "pum-on.firebaseapp.com",
@@ -57,10 +74,10 @@ db.ref("rescuedAnimals/shelters/list").on("value", snap => {
   const raw = snap.val();
   if (!raw) return;
 
-  // ✅ 순서 변경: 대시보드 데이터 먼저 준비
+  // 대시보드 데이터 먼저 준비
   prepareDashboardDataFromShelters(Object.values(raw));
   
-  // ✅ 그 다음 보호소 리스트 구축
+  // 그 다음 보호소 리스트 구축
   rebuildFromShelters(Object.values(raw));
 
   const dashboardSection = document.querySelector(".dashboard-section");
@@ -129,14 +146,14 @@ function rebuildFromShelters(shelters) {
 
   initProvinceSelect();
   
-  // ✅ 초기에는 모든 보호소 표시 (대시보드 보호소 제외)
+  // 초기에는 모든 보호소 표시 (대시보드 보호소 제외)
   filterOutDashboardShelter();
   applySortToVisible();
   
   currentPage = 1;
   currentGroup = 0;
 
-  // ✅ 화면 업데이트
+  // 화면 업데이트
   updateShelterTotalCount();
   renderPage();
   renderPagination();
@@ -179,13 +196,13 @@ provinceSelect.onchange = () => {
 
   const province = provinceSelect.value;
   
-  // ✅ 시/도 미선택 시 전체 표시
+  // 시/도 미선택 시 전체 표시
   if (!province) {
     createShelterList();
     return;
   }
 
-  // ✅ 선택한 시/도의 시/군/구 목록 채우기
+  // 선택한 시/도의 시/군/구 목록 채우기
   const region = regionSummary.find(r => r.province === province);
   if (region) {
     region.cities.forEach(c => {
@@ -212,7 +229,7 @@ function createShelterList(province = "", city = "") {
   
   const dashboardShelterName = window.dashboardData?.shelterName;
   
-  // ✅ 필터링 (대시보드 보호소 제외)
+  // 필터링 (대시보드 보호소 제외)
   visibleShelters = allShelters.filter(s => {
     // 대시보드 보호소 제외
     if (dashboardShelterName && s.name === dashboardShelterName) return false;
@@ -228,7 +245,7 @@ function createShelterList(province = "", city = "") {
   currentPage = 1;
   currentGroup = 0;
 
-  // ✅ 화면 업데이트
+  // 화면 업데이트
   updateShelterTotalCount();
   renderPage();
   renderPagination();
@@ -301,7 +318,7 @@ document.querySelectorAll("#sortTags .tag").forEach(btn => {
     currentPage = 1;
     currentGroup = 0;
 
-    // ✅ 화면 업데이트
+    // 화면 업데이트
     updateShelterTotalCount();
     renderPage();
     renderPagination();
@@ -332,12 +349,12 @@ function getShelterImage(shelterName) {
   // 첫 번째로 매칭되는 키워드의 이미지 반환
   for (const { keyword, image } of imageMap) {
     if (shelterName.includes(keyword)) {
-      return `assets/images/${image}`;
+      return `../assets/images/${image}`;
     }
   }
 
   // 매칭되는 키워드가 없으면 기본 이미지
-  return "assets/images/shelter.jpg";
+  return "../assets/images/shelter.jpg";
 }
 
 /*************************
@@ -346,7 +363,7 @@ function getShelterImage(shelterName) {
 function renderPage() {
   cardContainer.innerHTML = "";
 
-  // ✅ visibleShelters 사용
+  // visibleShelters 사용
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageItems = visibleShelters.slice(start, start + PAGE_SIZE);
 
@@ -393,7 +410,7 @@ function renderPage() {
     }
   });
 
-  // ✅ 현재 페이지 동물 수 업데이트
+  // 현재 페이지 동물 수 업데이트
   updateVisibleAnimalsCount();
 }
 
@@ -403,10 +420,10 @@ function renderPage() {
 function renderPagination() {
   pagination.innerHTML = "";
 
-  // ✅ visibleShelters 기준으로 페이지 계산
+  // visibleShelters 기준으로 페이지 계산
   const totalPages = Math.ceil(visibleShelters.length / PAGE_SIZE);
   
-  // ✅ 페이지가 없어도 항상 표시 (공간 유지)
+  // 페이지가 없어도 항상 표시 (공간 유지)
   if (totalPages === 0) {
     pagination.style.visibility = 'hidden';
     return;
@@ -564,7 +581,7 @@ function initDashboard(data) {
     currentAnimals
   } = data;
 
-  // ✅ 제목 업데이트 (shelterTitle ID 사용)
+  // 제목 업데이트 (shelterTitle ID 사용)
   const titleEl = document.getElementById("shelterTitle");
   if (titleEl) {
     titleEl.textContent = shelterName;
@@ -609,7 +626,7 @@ const observer = new IntersectionObserver(entries => {
 function prepareDashboardDataFromShelters(shelters) {
   if (!shelters || shelters.length === 0) return;
 
-  // 1. 압박지수가 가장 높은 보호소 찾기
+  // - 1. 압박지수가 가장 높은 보호소 찾기
   let maxPressureShelter = null;
   let maxPressure = -1;
 
@@ -638,28 +655,45 @@ function prepareDashboardDataFromShelters(shelters) {
   const targetShelter = maxPressureShelter.info;
   console.log("🎯 최고 압박지수 보호소:", targetShelter.careNm, `(${(maxPressure * 100).toFixed(1)}%)`);
 
-  // 2. 해당 보호소가 속한 지역 추출
+  // - 2. 해당 보호소가 속한 지역 추출
   const parts = targetShelter.orgNm.trim().split(" ");
   const province = parts[0] || "기타";
   const city = parts.slice(1).join(" ") || "미분류";
 
-  // 3. 지역 보호율 계산 (해당 보호소 동물 수 / 해당 지역 전체 동물 수 합)
-  const regionShelters = shelters.filter(s => 
-    s.info && s.info.orgNm && s.info.orgNm.includes(city)
-  );
+  // - 3. 지역 보호율 계산 (해당 지역 보호소 개수 / 전체 보호소 개수)
 
-  const totalRegionAnimals = regionShelters.reduce(
-    (sum, s) => sum + (s.info ? s.info.currentAnimals : 0), 0
-  );
+// 전체 보호소 개수
+const totalShelterCount = shelters.filter(s => s.info && s.info.orgNm).length;
 
-  // ✅ 수정: 해당 보호소 동물 수 / 해당 지역 전체 동물 수 합
-  const localRate = totalRegionAnimals > 0
-    ? (targetShelter.currentAnimals / totalRegionAnimals) * 100
-    : 0;
+// 해당 지역 보호소 개수 (같은 city 기준)
+const regionShelterCount = shelters.filter(s =>
+  s.info &&
+  s.info.orgNm &&
+  s.info.orgNm.includes(city)
+).length;
+// 같은 지역(city 기준) 보호소 목록
+const regionShelters = shelters.filter(s =>
+  s.info &&
+  s.info.orgNm &&
+  s.info.orgNm.includes(city)
+);
 
-  console.log(`📊 지역 보호율 계산: ${targetShelter.currentAnimals} / ${totalRegionAnimals} = ${localRate.toFixed(1)}%`);
 
-  // 4. 지역 대비 보호소 수용률 계산
+// 변경된 지역 보호율
+const localRate = totalShelterCount > 0
+  ? (regionShelterCount / totalShelterCount) * 100
+  : 0;
+
+console.log(
+  `📊 지역 보호율(보호소 기준): ${regionShelterCount} / ${totalShelterCount} = ${localRate.toFixed(1)}%`
+);
+
+console.log("전체 보호소 수:", totalShelterCount);
+console.log("지역 보호소 수:", regionShelterCount);
+console.log("city 기준:", city);
+
+
+  // - 4. 지역 대비 보호소 수용률 계산
   // (해당 지역 최대 수용량 / 전체 지역 최대 수용량)
   const regionCapacity = regionShelters.reduce((sum, s) => {
     if (!s.info) return sum;
@@ -681,7 +715,7 @@ function prepareDashboardDataFromShelters(shelters) {
     ? (regionCapacity / totalCapacity) * 100
     : 0;
 
-  // 5. 입양 시급도 계산
+  // - 5. 입양 시급도 계산
   const capacity = Number(targetShelter.shelterCapacity) || 1;
   const pressure = (targetShelter.currentAnimals / capacity);
   const shortage = Math.max(0, targetShelter.currentAnimals - capacity);
@@ -691,7 +725,7 @@ function prepareDashboardDataFromShelters(shelters) {
     100
   );
 
-  // 6. 대시보드 데이터 설정
+  // - 6. 대시보드 데이터 설정
   window.dashboardData = {
     shelterName: targetShelter.careNm,
     pressure: Math.round(pressure * 100),
@@ -701,22 +735,22 @@ function prepareDashboardDataFromShelters(shelters) {
     currentAnimals: targetShelter.currentAnimals
   };
 
-  // ✅ 보호소 주소 저장
+  // 보호소 주소 저장
   window.dashboardShelterAddress = targetShelter.careAddr;
 
   console.log("📊 대시보드 데이터:", window.dashboardData);
   console.log("📍 보호소 주소:", window.dashboardShelterAddress);
   
-  // ✅ 보호소 정보 렌더링
+  // 보호소 정보 렌더링
   renderShelterInfo(targetShelter);
 
-  // ✅ 지도 초기화
+  // 지도 초기화
   setTimeout(() => {
     initKakaoMap();
   }, 500);
 }
 
-// ✅ 보호소 정보 렌더링 (새로운 HTML 구조에 맞게)
+// 보호소 정보 렌더링 (새로운 HTML 구조에 맞게)
 function renderShelterInfo(info) {
   // 제목
   const titleEl = document.getElementById("shelterTitle");
@@ -745,14 +779,14 @@ function renderShelterInfo(info) {
   console.log("✅ 보호소 정보 렌더링 완료:", info.careNm);
 }
 
-// ✅ 보호소 카드 리스트 total 기능
+// 보호소 카드 리스트 total 기능
 function updateShelterTotalCount() {
   const countEl = document.getElementById("shelterTotalCount");
   if (!countEl) return;
   countEl.textContent = visibleShelters.length;
 }
 
-// ✅ 전체 보호소 기준 동물 수 계산
+// 전체 보호소 기준 동물 수 계산
 function updateVisibleAnimalsCount() {
   const countEl = document.getElementById("visibleAnimalsCount");
   if (!countEl) return;
@@ -803,7 +837,7 @@ function getChartValue(item) {
 }
 
 function getMax(key) {
-  // ✅ visibleShelters 기준으로 최댓값 계산
+  // visibleShelters 기준으로 최댓값 계산
   return Math.max(...visibleShelters.map(s => s[key] || 0), 1);
 }
 
@@ -893,11 +927,11 @@ function displayShelterOnMap(map, address, shelterName) {
     if (status === kakao.maps.services.Status.OK) {
       const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
 
-      // ✅ 지도 중심 먼저 이동
+      // 지도 중심 먼저 이동
       map.setCenter(coords);
       map.setLevel(4);
 
-      // ✅ relayout으로 지도 다시 그리기
+      // relayout으로 지도 다시 그리기
       setTimeout(() => {
         map.relayout();
         map.setCenter(coords); // 다시 한번 중심 설정
