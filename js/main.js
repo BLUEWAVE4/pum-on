@@ -1,3 +1,10 @@
+import { showLoader, setLoaderProgress, hideLoader } from "./loader.js";
+import("./loader.js").then(m => console.log(m));
+
+import { goPetDetail } from "./navigation.js";
+import { goShelterDetail } from "./navigation.js";
+
+
 /*************************
  * 0 GLOBAL STATE
  *************************/
@@ -9,7 +16,7 @@ const APP = {
 };
 
 const CONFIG = {
-  DATA_URL: './js/pum--on-default-rtdb-export.json',
+  DATA_URL: 'https://pum--on-default-rtdb.firebaseio.com/rescuedAnimals.json',
   SIDO_URL: 'https://unpkg.com/realmap-collection/kr-sido-low.geo.json',
   TOP_SHELTERS_COUNT: 5,
   DEFAULT_PET_LIMIT: 4,
@@ -17,7 +24,7 @@ const CONFIG = {
   ANIMATION_DURATION: 800,
   REGION: '경기도',
   PRESSURE_THRESHOLDS: {
-    DANGER: 75,
+    DANGER: 70,
     WARNING: 40
   }
 };
@@ -47,16 +54,16 @@ function calcPressure(currentCount, capacity) {
  */
 function isWithinLastMonth(yyyymmdd) {
   if (!yyyymmdd || yyyymmdd.length !== 8) return false;
-  
+
   const year = parseInt(yyyymmdd.slice(0, 4));
   const month = parseInt(yyyymmdd.slice(4, 6)) - 1; // JS Date는 0부터 시작
   const day = parseInt(yyyymmdd.slice(6, 8));
-  
+
   const itemDate = new Date(year, month, day);
   const today = new Date();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(today.getDate() - 30);
-  
+
   return itemDate >= thirtyDaysAgo && itemDate <= today;
 }
 
@@ -67,7 +74,7 @@ function isWithinLastMonth(yyyymmdd) {
  */
 function flatten(item) {
   const result = [];
-  
+
   if (Array.isArray(item)) {
     item.forEach(inner => {
       result.push(...flatten(inner));
@@ -75,7 +82,7 @@ function flatten(item) {
   } else if (item && typeof item === "object") {
     result.push(item);
   }
-  
+
   return result;
 }
 
@@ -203,7 +210,7 @@ function calculateCityPressureStats(shelters) {
   const cityStats = {};
 
   // 경기도 보호소만 필터링
-  const gyeonggiShelters = shelters.filter(shelter => 
+  const gyeonggiShelters = shelters.filter(shelter =>
     shelter.careAddr && shelter.careAddr.includes(CONFIG.REGION)
   );
 
@@ -211,7 +218,7 @@ function calculateCityPressureStats(shelters) {
   gyeonggiShelters.forEach(shelter => {
     const addressParts = shelter.careAddr.split(" ");
     const cityName = addressParts[1]; // "경기도 수원시" -> "수원시"
-    
+
     if (!cityName) return;
 
     if (!cityStats[cityName]) {
@@ -243,13 +250,13 @@ function calculateCityPressureStats(shelters) {
 async function loadData() {
   try {
     const response = await fetch(CONFIG.DATA_URL);
-    const rawData = await response.json();
-    const rescued = rawData.rescuedAnimals || {};
-    
+    const rescued = await response.json();
+    // const rescued = rawData.rescuedAnimals || {};
+
     // --- 역사 데이터 처리 ---
     const dataRoot = rescued.data || {};
     const historicalAnimals = extractHistoricalAnimals(dataRoot);
-    
+
     APP.animals = normalizeAnimalData(historicalAnimals);
     APP.liveAnimals = filterAndSortProtectedAnimals(historicalAnimals);
 
@@ -262,14 +269,15 @@ async function loadData() {
 
     // --- 지도 데이터 동기화 ---
     syncMapData(APP.shelters);
-    
+
     return true;
-    
+
   } catch (error) {
     console.error("데이터 로드 실패:", error);
     return false;
   }
 }
+window.loadData = loadData;
 
 /**
  * 지도 데이터 동기화
@@ -277,7 +285,7 @@ async function loadData() {
  */
 function syncMapData(shelters) {
   const cityPressureData = calculateCityPressureStats(shelters);
-  
+
   // 지도 컴포넌트가 참조하는 전역 변수
   window.realGGValues = cityPressureData;
 
@@ -295,7 +303,7 @@ function syncMapData(shelters) {
  */
 function createPetCardHTML(animal) {
   const imageUrl = animal.popfile1 || animal.popfile2 || "./assets/images/img_404.png";
-  
+
   return `
     <div class="petcard">
       <div class="card-top">
@@ -305,7 +313,7 @@ function createPetCardHTML(animal) {
       <div class="description3">
         <div class="description2 t-L">
           <div class="t-S sub">${animal.kindNm} · ${animal.sexCd} · ${animal.age} · ${animal.weight || ""}</div>
-          <div class="t-M" style="font-weight:700">${animal.kindNm}</div>
+          <div>${animal.kindNm}</div>
         </div>
         <div class="description2 t-L">
           <div class="t-S sub">공고 번호</div>
@@ -350,8 +358,15 @@ function renderPetCards(container, animals, limit = CONFIG.DEFAULT_PET_LIMIT) {
   itemsToShow.forEach(animal => {
     const cardElement = document.createElement("div");
     cardElement.innerHTML = createPetCardHTML(animal);
+
+    const card = cardElement.firstElementChild;
+    if (!card) return;
+    // ✅ attach to real card
+    card.setAttribute("data-shelter-id", animal.desertionNo);
+
     container.appendChild(cardElement.firstElementChild);
   });
+
 }
 
 /*************************
@@ -366,13 +381,13 @@ function renderPetCards(container, animals, limit = CONFIG.DEFAULT_PET_LIMIT) {
  */
 function createShelterCardHTML(shelter, rank) {
   const progressClass = getPressureClass(shelter.pressure);
-  
+
   return `
     <div class="sheltercard">
       <div class="flx-ttl">
         <div class="shelter-num">${rank}</div>
         <div class="description">
-          <div class="t-S sub">보호소센터</div>
+          <div class="t-S sub">보호센터</div>
           <div class="t-M">${shelter.careNm}</div>
         </div>
       </div>
@@ -412,10 +427,26 @@ function renderTop5(container, shelters) {
     .slice(0, CONFIG.TOP_SHELTERS_COUNT);
 
   topShelters.forEach((shelter, index) => {
-    const cardElement = document.createElement("div");
-    cardElement.innerHTML = createShelterCardHTML(shelter, index + 1);
-    container.appendChild(cardElement.firstElementChild);
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = createShelterCardHTML(shelter, index + 1);
+
+    const card = wrapper.firstElementChild;
+
+    if (!card) return;
+
+    // ✅ attach to real card
+    card.setAttribute("data-shelter-id", shelter.careNm);
+
+    container.appendChild(card);
   });
+
+  container.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-shelter-id]");
+    if (!card || !container.contains(card)) return;
+
+    goShelterDetail(card.dataset.shelterId);
+  });
+
 
   // 무한 스크롤을 위해 카드 복제
   container.innerHTML += container.innerHTML;
@@ -433,7 +464,7 @@ function renderTop5(container, shelters) {
  */
 function calculateProcessStateCounts(animals) {
   const recentAnimals = animals.filter(a => isWithinLastMonth(a.happenDt));
-  
+
   return {
     notice: recentAnimals.filter(a => a.processState?.includes("보호")).length,
     adopt: recentAnimals.filter(a => a.processState?.includes("입양")).length,
@@ -514,8 +545,8 @@ function calcGyeonggiSummary(animals, shelters, meta) {
   const totalProtected = gyeonggiProtectedAnimals.length;
 
   // 전체 수용률
-  const totalPressure = totalCapacity > 0 
-    ? Math.round((totalProtected / totalCapacity) * 100) 
+  const totalPressure = totalCapacity > 0
+    ? Math.round((totalProtected / totalCapacity) * 100)
     : 0;
 
   return {
@@ -556,7 +587,7 @@ function renderGyeonggiSummary(summary, duration = CONFIG.ANIMATION_DURATION) {
   ];
 
   const startTime = performance.now();
-  
+
   function animate(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
@@ -586,23 +617,31 @@ function renderGyeonggiSummary(summary, duration = CONFIG.ANIMATION_DURATION) {
  * 앱 초기화
  */
 async function initializeApp() {
+  showLoader();
+  setLoaderProgress(10);
+
   const success = await loadData();
+  setLoaderProgress(60);
   if (!success) {
     console.error("데이터 로드 실패로 인한 초기화 중단");
     return;
   }
 
   const summary = calcGyeonggiSummary(APP.animals, APP.shelters, APP.meta);
+  setLoaderProgress(80);
 
   renderGyeonggiSummary(summary);
   renderPetCards(document.getElementById("petList"), APP.liveAnimals);
   renderTop5(document.getElementById("top5"), APP.shelters);
   renderSummaryChart(document.getElementById("mapSum"), APP.animals);
   initDraggable("top5");
+  setLoaderProgress(100);
+  setTimeout(hideLoader, 300);
 }
 
 // DOM 로드 완료시 앱 초기화
 document.addEventListener("DOMContentLoaded", initializeApp);
+window.initializeApp = initializeApp;
 
 /*************************
  * 9 DRAG INTERACTION
@@ -673,6 +712,19 @@ function initDraggable(elementId) {
     isTop5Dragging = false;
     slider.classList.remove("dragging");
   });
+
+  slider.addEventListener("wheel", (e) => {
+    // If user is scrolling vertically, pass it to the page
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      window.scrollBy({
+        top: e.deltaY,
+        left: 0,
+        behavior: "auto"
+      });
+      e.preventDefault();
+    }
+  }, { passive: false });
+
 }
 
 /*************************
@@ -706,7 +758,7 @@ function autoScrollTop5(elementId, speed = CONFIG.SCROLL_SPEED) {
     // 드래그 중이 아닐 때만 자동 스크롤
     if (!isTop5Dragging && loopWidth > 0) {
       const deltaTime = Math.min(currentTime - lastTime, 50); // 최대 50ms로 제한
-      position += speed * (deltaTime / 1000);
+      position += speed * (deltaTime / 400);
 
       // 무한 루프 처리
       if (position >= loopWidth) {

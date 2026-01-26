@@ -17,7 +17,7 @@
     --radius-button-lg: 1rem;
     --radius-card-lg: 1.5rem;
     --radius-card-sm: 1rem;
-    --radius-barVal: 4px
+    --radius-barVal: 4px;
     --radius-bar: 8px;
 }
 
@@ -30,6 +30,10 @@
 
 body {
     background: linear-gradient(0deg, var(--bg)40%, var(--bg-smokey));
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 a {
@@ -68,7 +72,7 @@ a {
 
 /* 14px */
 .t-S {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 400;
     white-space: nowrap;
 }
@@ -215,7 +219,9 @@ li:hover .link {
     width: 20vw;
 }
 
-.logo img {
+.logo a {
+    display: flex;
+    justify-content: center;
     width: auto;
     height: 40px;
 }
@@ -236,6 +242,19 @@ li:hover .link {
     position: relative;
     width: 144px;
     height: 100%;
+    gap: 16px;
+}
+
+.btn-primary {
+    padding: 10px 14px;
+    border-radius: 16px;
+    background-color: var(--primary);
+    color: var(--bg);
+}
+
+.btn-primary:hover {
+    text-decoration: none;
+    opacity: 0.9;
 }
 
 .acc-trigger {
@@ -305,19 +324,10 @@ li:hover .link {
     z-index: 20;
 }
 
-.link4{
+.link3 {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 4px;
-    height: 48px;
-}
-
-.link3{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 4px;
     height: 56px;
     width: fit-content;
 }
@@ -328,17 +338,32 @@ li:hover .link {
     transition: all 0.2s ease-in-out;
 }
 
+.link4 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+}
+
 .chkLabel {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: relative;
-    padding-left: 36px;
-    margin-bottom: 24px;
+    padding-left: 32px;
+    /* margin-bottom: 24px; */
     cursor: pointer;
     /* font-size: 1.2rem; */
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.fosent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .chkLabel input {
@@ -360,38 +385,38 @@ li:hover .link {
 }
 
 /* On mouse-over, add a grey background color */
-.chkLabel:hover input ~ .checkmark {
-  background-color: var(--primary-sub);
+.chkLabel:hover input~.checkmark {
+    background-color: var(--primary-sub);
 }
 
 /* When the checkbox is checked, add a blue background */
-.container input:checked ~ .checkmark {
-  background-color: var(--primary);
+.container input:checked~.checkmark {
+    background-color: var(--primary);
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
 .checkmark:after {
-  content: "";
-  position: absolute;
-  display: none;
+    content: "";
+    position: absolute;
+    display: none;
 }
 
 /* Show the checkmark when checked */
-.container input:checked ~ .checkmark:after {
-  display: block;
+.container input:checked~.checkmark:after {
+    display: block;
 }
 
 /* Style the checkmark/indicator */
 .container .checkmark:after {
-  left: 6px;
-  top: 4px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--bg);
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
+    left: 6px;
+    top: 4px;
+    width: 4px;
+    height: 8px;
+    border: solid var(--bg);
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
 }
 
 /* --------------------------------main area */
@@ -644,7 +669,6 @@ li:hover .link {
     cursor: grab;
     -ms-overflow-style: none;
     scrollbar-width: none;
-    padding: 0px 24px;
     white-space: nowrap;
     overscroll-behavior-x: contain;
     overscroll-behavior-y: none;
@@ -674,19 +698,19 @@ li:hover .link {
     /* prevent image drag ghost */
 }
 
+.flx-ttl {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 8px;
+}
+
 .shelter-num {
     font-size: 3rem;
     font-weight: 500;
     line-height: 40px;
     text-align: center;
     width: fit-content;
-}
-
-.flx-ttl {
-    display: flex;
-    justify-content: start;
-    align-items: center;
-    gap: 8px;
 }
 
 #numEm {
@@ -718,7 +742,7 @@ progress::-moz-progress-bar {
     border-radius: var(--radius-barVal);
 }
 
-.progress-safe::-webkit-progress-value{
+.progress-safe::-webkit-progress-value {
     background-color: var(--good);
 }
 
@@ -726,7 +750,7 @@ progress::-moz-progress-bar {
     background-color: var(--good);
 }
 
-.progress-warning::-webkit-progress-value{
+.progress-warning::-webkit-progress-value {
     background-color: var(--warning);
 }
 
@@ -734,7 +758,7 @@ progress::-moz-progress-bar {
     background-color: var(--warning);
 }
 
-.progress-danger::-webkit-progress-value{
+.progress-danger::-webkit-progress-value {
     background-color: var(--danger);
 }
 
@@ -778,6 +802,7 @@ progress::-moz-progress-bar {
 
 #petList {
     display: flex;
+    justify-content: center;
     gap: 24px;
 }
 
@@ -797,7 +822,7 @@ progress::-moz-progress-bar {
 
 .petcard:hover {
     scale: 1.02;
-    box-shadow: 0 4px 12px 12px var(--shadow);
+    box-shadow: 0 12px 12px 12px var(--shadow);
 }
 
 .card-top {
@@ -846,76 +871,4 @@ progress::-moz-progress-bar {
     gap: 12px;
     padding: 0px 24px;
     word-break: keep-all;
-}
-
-.modal {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    /* Stay in place */
-    z-index: 99;
-    /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%;
-    /* Full width */
-    height: 100%;
-    /* Full height */
-    overflow: hidden;
-    /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    background-color: var(--bg);
-    margin: 56px auto;
-    /* 15% from the top and centered */
-    border-radius: var(--radius-card-lg);
-    width: 40vw;
-    /* Could be more or less, depending on screen size */
-    height: 800px;
-    word-break: keep-all;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    padding: 24px;
-    color: var(--bg);
-    border-radius: var(--radius-card-lg) 24px 0px 0px;
-    background-color: var(--txt);
-}
-
-.modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0px 24px;
-    overflow: auto;
-    color: var(--txt);
-    height: 666px;
-    line-height: 2rem;
-}
-
-.close img {
-    background: var(--bg);
-    float: right;
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: var(--txt);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-hr {
-    border: 1px solid var(--null);
 }

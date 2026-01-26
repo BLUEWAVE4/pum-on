@@ -8,18 +8,21 @@ const btn = document.getElementById("tos");
 const closeEl = document.getElementsByClassName("close")[0];
 
 // When the user clicks on the button, open the modal
-btn.onclick = function() {
+btn.onclick = function () {
   modal.style.display = "block";
+  document.body.classList.add("modal-open");
 }
 
 // When the user clicks on <span> (x), close the modal
-closeEl.onclick = function() {
+closeEl.onclick = function () {
   modal.style.display = "none";
+  document.body.classList.remove("modal-open");
 }
 
 // When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
+window.onclick = function (event) {
   if (event.target == modal) {
     modal.style.display = "none";
+    document.body.classList.remove("modal-open");
   }
 } 
