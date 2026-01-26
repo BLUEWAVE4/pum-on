@@ -124,3 +124,57 @@ auth.onAuthStateChanged(async (user) => {
         updateHeaderUI(null, null);
     }
 });
+
+///////////////////////////////////////////////
+// 페이지 접근 제어 함수
+///////////////////////////////////////////////
+
+// 특정 권한이 필요한 페이지 접근 제어
+// requiredUserType: 'shelter' 또는 'foster'
+// redirectUrl: 접근 불가 시 이동할 URL
+let requireAuthChecked = false; // 첫 인증 체크 완료 여부
+
+function requireAuth(requiredUserType, redirectUrl = '../index.html') {
+    // 페이지 콘텐츠를 먼저 숨김
+    document.documentElement.style.visibility = 'hidden';
+    requireAuthChecked = false;
+
+    auth.onAuthStateChanged(async (user) => {
+        // 첫 체크만 리다이렉트 처리 (이후 로그아웃 등은 기존 리스너가 처리)
+        if (requireAuthChecked) return;
+        requireAuthChecked = true;
+
+        // 비로그인 상태
+        if (!user) {
+            alert('로그인이 필요한 페이지입니다.');
+            location.href = redirectUrl;
+            return;
+        }
+
+        try {
+            const snapshot = await database.ref('users/' + user.uid).once('value');
+            const userData = snapshot.val();
+
+            // 사용자 데이터 없음
+            if (!userData) {
+                alert('사용자 정보를 찾을 수 없습니다.');
+                location.href = redirectUrl;
+                return;
+            }
+
+            // 권한 불일치
+            if (userData.userType !== requiredUserType) {
+                alert('접근 권한이 없습니다.');
+                location.href = redirectUrl;
+                return;
+            }
+
+            // 접근 허용 - 페이지 콘텐츠 표시
+            document.documentElement.style.visibility = 'visible';
+            console.log(`${requiredUserType} 권한 확인 완료`);
+        } catch (error) {
+            console.error('권한 확인 오류:', error);
+            location.href = redirectUrl;
+        }
+    });
+}

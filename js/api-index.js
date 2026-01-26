@@ -426,18 +426,17 @@ async function updateShelters() {
     return { bytes: 0 };
   }
 
-  // 전국 보호소 API 데이터 가져오기 (vetPersonCnt, specsPersonCnt 정보)
-  const { shelters: nationalShelters, bytes: nationalBytes } = await fetchNationalShelterAPI();
+  // 전국 + 경기도 보호소 API 병렬 호출 (성능 최적화)
+  const [nationalResult, gyeonggiResult] = await Promise.all([
+    fetchNationalShelterAPI(),
+    fetchGyeonggiShelterAPI()
+  ]);
+
+  const { shelters: nationalShelters, bytes: nationalBytes } = nationalResult;
+  const { shelters: gyeonggiShelters, bytes: gyeonggiBytes } = gyeonggiResult;
+
   const nationalShelterMap = createNationalShelterMap(nationalShelters);
-  // console.log(`   🗺️  전국 보호소 매칭 맵 생성 완료: ${Object.keys(nationalShelterMap).length}개\n`);
-
-  // 경기도 보호소 API 데이터 가져오기 (ACEPTNC_ABLTY_CNT 정보)
-  // console.log("📡 경기도 보호소 API 조회 중...");
-  const { shelters: gyeonggiShelters, bytes: gyeonggiBytes } = await fetchGyeonggiShelterAPI();
-  // console.log(`   ✅ 경기도 보호소 ${gyeonggiShelters.length}개 조회 완료`);
-
   const gyeonggiShelterMap = createGyeonggiShelterMap(gyeonggiShelters);
-  // console.log(`   🗺️  경기도 보호소 매칭 맵 생성 완료: ${Object.keys(gyeonggiShelterMap).length}개`);
 
   const totalBytes = nationalBytes + gyeonggiBytes;
 
@@ -510,9 +509,9 @@ async function updateShelters() {
       careTel: group.info.careTel,
       careAddr: group.info.careAddr,
       orgNm: group.info.orgNm,
-      vetPersonCnt: nationalMatch?.vetPersonCnt || null,
-      specsPersonCnt: nationalMatch?.specsPersonCnt || null,
-      ACEPTNC_ABLTY_CNT: gyeonggiMatch?.ACEPTNC_ABLTY_CNT || null,
+      vetPersonCnt: nationalMatch?.vetPersonCnt || "미확인",
+      specsPersonCnt: nationalMatch?.specsPersonCnt || "미확인",
+      shelterCapacity: gyeonggiMatch?.ACEPTNC_ABLTY_CNT || "미확인",
       currentAnimals: group.animals.length,
       statusBreakdown: group.statusBreakdown,
       animals: group.animals,
@@ -722,5 +721,11 @@ async function deleteRescuedAnimals() {
   }
 }
 
+
+
 // ========== 실행 ==========
+
+// 일일 업데이트 (평소 사용)
 dailyUpdate();
+
+

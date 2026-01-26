@@ -122,6 +122,7 @@ const signUpShelter = async () => {
     await database.ref('users/' + userId).set(userData);
 
     alert('회원가입 완료!');
+    location.href = '../index.html';
 
   } catch (error) {
     alert('오류: ' + error.message);
@@ -212,6 +213,7 @@ const signUpFoster = async () => {
 
     await database.ref('users/' + userId).set(userData);
     alert('임시보호자 회원가입 완료!');
+    location.href = '../index.html';
 
   } catch (error) {
     alert('오류: ' + error.message);

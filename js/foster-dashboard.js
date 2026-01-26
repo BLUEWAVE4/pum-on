@@ -37,13 +37,25 @@ async function getUserRegion() {
     const snapshot = await database.ref('users/' + user.uid).once('value');
     const userData = snapshot.val();
 
-    if (!userData || !userData.fosterInfo?.address) {
+    if (!userData) {
+      console.log('[foster-dashboard] 사용자 데이터 없음');
+      return "서울";
+    }
+
+    // userType에 따라 주소 가져오기
+    let address = null;
+    if (userData.userType === 'shelter' && userData.shelterInfo?.address) {
+      address = userData.shelterInfo.address;
+    } else if (userData.userType === 'foster' && userData.fosterInfo?.address) {
+      address = userData.fosterInfo.address;
+    }
+
+    if (!address) {
       console.log('[foster-dashboard] 사용자 주소 정보 없음');
       return "서울";
     }
 
     // 주소에서 지역 추출
-    const address = userData.fosterInfo.address;
     const region = extractRegionFromAddress(address);
     console.log(`[foster-dashboard] 사용자 지역: ${region}`);
     return region;

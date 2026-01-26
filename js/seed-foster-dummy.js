@@ -3,7 +3,6 @@ import {
   ref,
   set,
   push,
-  remove,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 /*
@@ -15,25 +14,6 @@ import {
   - 지역: 시/도 목록 기반 랜덤 주소
   - preferAnimals 등 랜덤
 */
-
-// ============================================
-// 🗑️ 1회용: /users 전체 삭제 (사용 후 주석 처리)
-// ============================================
-async function deleteAllUsers() {
-  console.group("🗑️ /users 전체 삭제");
-  try {
-    const usersRef = ref(db, "users");
-    await remove(usersRef);
-    console.log("✅ 삭제 완료!");
-    console.groupEnd();
-  } catch (err) {
-    console.error("❌ 삭제 실패:", err);
-    console.groupEnd();
-  }
-}
-
-// 아래 주석 해제하여 실행 후 다시 주석 처리
-deleteAllUsers();
 
 // ============================================
 
@@ -96,17 +76,14 @@ function randomEmail(name) {
 }
 
 function randomAddress() {
-  // 경기도 20% 더 높게 (약 26%), 나머지 지역 균등 분배
+  // 경기도 약간 가중치 (약 15%), 나머지 균등 분배
   const random = Math.random();
   let region;
 
-  if (random < 0.26) {
-    // 26% 경기도
+  if (random < 0.15) {
     region = "경기도";
   } else {
-    // 74% 나머지 지역 균등 분배
-    const otherRegions = REGIONS.filter(r => r !== "경기도");
-    region = pick(otherRegions);
+    region = pick(REGIONS);
   }
 
   const district = pick(DISTRICTS);

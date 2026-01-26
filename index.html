@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>품:ON</title>
-    <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/modalTos.css">
+    <link rel="stylesheet" href="./css/loader.css">
     <link rel="icon" type="svg" href="./assets/images/favicon.svg">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -17,33 +17,39 @@
         <div class="container">
             <!-- logo area -->
             <div class="logo">
-                <a href="./index.html"><img src="/assets/images/ci4.svg" alt="logo"></a>
+                <a href="./index.html"><img src="./assets/images/ci4.svg" alt="logo"></a>
             </div>
             <!-- menu area -->
             <ul class="nav-wrapper">
                 <li class="select">
-                    <a href="/about" class="link">홈</a>
+                    <a href="/index.html" class="link">홈</a>
                 </li>
                 <li class="select">
-                    <a href="/services" class="link">보호소</a>
+                    <a href="./pages/shelter.html" class="link">보호소</a>
                 </li>
                 <li class="select">
-                    <a href="/shelters" class="link">입양동물</a>
+                    <a href="./pages/animal.html" class="link">입양동물</a>
                 </li>
                 <li class="select">
-                    <a href="/pages/foster.html" class="link">임시보호자</a>
+                    <a href="./pages/foster.html" class="link">임시보호자</a>
                 </li>
             </ul>
             <!-- account area -->
             <div class="acc-action">
-                <div class="acc-flex" id="accMenu">
+                <!-- 비로그인 상태 -->
+                <div class="acc-guest" id="accGuest">
+                    <a href="./pages/login.html" class="btn-login">로그인</a>
+                    <a href="./pages/signup.html" class="btn-signup">회원가입</a>
+                </div>
+                <!-- 로그인 상태 -->
+                <div class="acc-flex" id="accUser" style="display: none;">
                     <div class="acc-trigger" id="accTrigger">
                         <div class="acc">
-                            <img src="/assets/images/account.svg">
+                            <img src="./assets/images/account.svg">
                         </div>
                         <div class="name-action">
-                            <div class="t-M" id="accName">가나디</div>
-                            <div class="t-S" id="heir">임시 보호자</div>
+                            <div class="t-M" id="accName">사용자</div>
+                            <div class="t-S" id="accRole">임시 보호자</div>
                         </div>
                     </div>
                     <ul class="options t-M" id="accOptions">
@@ -51,24 +57,27 @@
                             <label class="chkLabel" for="protectable">
                                 <input type="checkbox" checked="checked" id="protectable">
                                 <span class="checkmark"></span>
-                                임시보호 가능
+                                <span class="fosent">임시보호 가능</span>
                             </label>
                         </li>
                         <li class="link3"><a href="">정보 수정</a></li>
-                        <li class="link3"><a href="">로그아웃</a></li>
+                        <li class="link3"><a href="#" onclick="auth.signOut(); return false;">로그아웃</a></li>
                     </ul>
                 </div>
-
             </div>
-
         </div>
     </header>
+
+    <!-- loading bar -->
+    <div id="pageLoader">
+        <div class="loader-bar"></div>
+    </div>
 
     <!-- main area -->
     <main>
         <!-- map area -->
         <div class="container2">
-            <div class="t-XL">경기도 보호소 현황</div>
+            <div class="t-XL">보호소 현황</div>
             <div class="map-flx">
                 <div class="flx">
                     <!-- 범례 -->
@@ -86,14 +95,14 @@
                                 <div class="warning-bar"></div>
                                 <div class="description">
                                     <div class="t-M">경고</div>
-                                    <div class="t-S">30% 이상</div>
+                                    <div class="t-S">40% 이상</div>
                                 </div>
                             </div>
                             <div class="label">
                                 <div class="good-bar"></div>
                                 <div class="description">
                                     <div class="t-M">여유</div>
-                                    <div class="t-S">30% 이하</div>
+                                    <div class="t-S">39% 이하</div>
                                 </div>
                             </div>
                             <div class="label">
@@ -160,7 +169,7 @@
         </div>
         <!-- Top5 shelter-->
         <div class="shelter-container">
-            <div class="shelter-header">위기 보호소 TOP 10</div>
+            <div class="shelter-header">위기 보호소 TOP 5</div>
             <div id="top5">
                 <!-- shelter cards repeat.js -->
                 <div class="sheltercard">
@@ -169,19 +178,19 @@
                         <div class="shelter-num">1</div>
                         <div class="description">
                             <div class="t-S sub">보호소센터</div>
-                            <div id="careNmEm">세종유동물보호센터</div>
+                            <div id="careNmEm">404</div>
                         </div>
                     </div>
                     <!-- progress bar -->
                     <div class="description">
                         <div class="t-S sub">수용률</div>
-                        <div><span id="numEm" class="t-B">92</span>%</div>
-                        <progress id="barEm" value="92" max="100"></progress>
+                        <div><span id="numEm" class="t-B">404</span>%</div>
+                        <progress id="barEm" value="0" max="100"></progress>
                     </div>
                     <!-- address -->
                     <div class="description">
                         <div class="t-S sub">주소</div>
-                        <div id="careAddrEm">경기도 가평군 가평읍 아랫마장길 59 (가평읍, 농업기술센터) 가평 유기동물 보호소(10:00~18:00)</div>
+                        <div id="careAddrEm">404</div>
                     </div>
                 </div>
             </div>
@@ -197,28 +206,28 @@
                 <div class="petcard">
                     <div class="card-top">
                         <span id="process" class="process-badge">보호중</span>
-                        <img id="sampleImages" src="">
+                        <img id="sampleImages" src="./assets/images/img_404.png">
                     </div>
                     <div class="description3">
                         <div class="description2 t-L">
-                            <div class="t-S sub">한국 고양이 · F · 2025(년생) · 1.0(Kg)</div>
-                            <div id="kindNm">브리티시 쇼트헤어</div>
+                            <div class="t-S sub">404</div>
+                            <div id="kindNm">404</div>
                         </div>
                         <div class="description2 t-L">
                             <div class="t-S sub">공고 번호</div>
-                            <div id="noticeNo">서울-동대문-2026-00004</div>
+                            <div id="noticeNo">404</div>
                         </div>
                         <div class="description2 t-L">
                             <div class="t-S sub">보호센터</div>
-                            <div id="careNm">세종유동물보호센터</div>
+                            <div id="careNm">404</div>
                         </div>
                         <div class="description2 t-L">
                             <div class="t-S sub">주소</div>
-                            <div id="careAddr">서울특별시 동대문구 천호대로 145 (용두동)</div>
+                            <div id="careAddr">404</div>
                         </div>
                         <div class="description2 t-L">
                             <div class="t-S sub">구조일자</div>
-                            <div id="notice">20260116 ~ 20260126</div>
+                            <div id="notice">404</div>
                         </div>
                     </div>
                 </div>
@@ -227,7 +236,7 @@
     </main>
 
     <!-- TOS Modal -->
-    <div id="tosModal" class="modal">
+    <div id="tosModal" class="modalTos">
         <!-- Modal content -->
         <div class="modal-content">
             <div class="modal-header">
@@ -311,10 +320,16 @@
             </div>
         </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+    <script src="./js/firebase-auth.js"></script>
     <script type="module" src="./js/main.js"></script>
-    <script src="./js/lowPolyMap.js"></script>
+    <script src="./js/acc-options.js"></script>
+    <script src="/js/lowPolyMap.js"></script>
     <script src="./js/tos.js"></script>
-    <script src="./js/accOptions.js"></script>
 </body>
 
 </html>
