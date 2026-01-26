@@ -29,6 +29,7 @@ a{
 a:hover{ text-decoration: underline; }
 
 /* Header */
+
 .site-header{
   background: #fff;
   border-bottom: 1px solid var(--border--color);
@@ -189,7 +190,7 @@ a:hover{ text-decoration: underline; }
 
 .notice-box {
   background: #fef3c7;
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid #FFB01F;
   padding: 20px;
   border-radius: 10px;
   margin-top: 30px;
@@ -267,7 +268,7 @@ a:hover{ text-decoration: underline; }
 
 /* 2. 유기동물 배경 섹션 */
 .info-section {
-  background: white;
+  background: #f9fafb;
 }
 
 .reason-grid {
@@ -488,32 +489,55 @@ a:hover{ text-decoration: underline; }
 
 /* 4. 입양 독려 섹션 */
 .adoption-section {
-  background: linear-gradient(
-    180deg,
-    #f9fafb 0%,
-    #f3f4f6 100%
-  );
+  background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
   padding: 100px 20px;
 }
 
-.adoption-content {
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  margin-bottom: 80px;
+/* 카드 공통 */
+.adoption-row {
+  max-width: 1440px;
+  margin: 0 auto 80px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 60px;
+  border: 1px solid var(--border--color);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
 }
 
+/* 이미지 영역 */
+.adoption-row-image {
+  border-radius: 20px;
+  overflow: hidden;
+}
 
+.adoption-row-image img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  display: block;
+}
 
-.adoption-text h2 {
-  text-align: center;
-  max-width: 900px;
-  margin: 0 auto;
+/* 텍스트 영역 */
+.adoption-row-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.adoption-row-content h2,
+.adoption-row-content h3 {
+  font-size: 1.9rem;
+  margin-bottom: 20px;
+  color: var(--color--text);
 }
 
 .stat-text {
   font-size: 1.25rem;
-  font-weight: 500;
   color: var(--color--subtext);
   margin-bottom: 10px;
 }
@@ -528,53 +552,19 @@ a:hover{ text-decoration: underline; }
   color: #6b7280;
 }
 
-
-.adoption-image {
-  width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
-
-.adoption-image img {
-  width: 100%;
-  height: 700px;
-  object-fit: cover;
-  display: block;
-}
-
-.adoption-message {
-  max-width: 1440px;
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 60px 50px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--border--color);
-}
-
-.adoption-message h3 {
-  font-size: 1.8rem;
-  margin-bottom: 18px;
-  color: var(--color--primary);
-}
-
-.adoption-message p {
+.adoption-row-content p {
   font-size: 1.1rem;
   color: var(--color--subtext);
-  margin-bottom: 14px;
   line-height: 1.75;
+  margin-bottom: 14px;
 }
 
 .support-text {
-  margin-top: 28px !important;
-  font-weight: 600 !important;
-  color: var(--color--primary) !important;
+  margin-top: 24px;
+  font-weight: 600;
+  color: var(--color--primary);
 }
+
 
 
 /* 5. 주의사항 섹션 */
@@ -702,9 +692,9 @@ a:hover{ text-decoration: underline; }
     grid-template-columns: 1fr;
   }
   
-  .adoption-content {
+  /* .adoption-content {
     grid-template-columns: 1fr;
-  }
+  } */
   
   .left-controls {
     flex-direction: column;
@@ -760,3 +750,6 @@ footer {
     width: auto;
     height: 48px;
 }
+
+
+
