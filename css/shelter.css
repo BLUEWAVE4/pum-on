@@ -52,7 +52,7 @@ a:hover{ text-decoration: underline; }
 }
 
 .logo{
-  height: 100%;
+  height: 40px;
   width: auto;
   display: block;
   object-fit: contain;
