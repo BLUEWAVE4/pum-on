@@ -15,8 +15,9 @@
 14. 차트 유틸
 15. 카카오맵
 */
+
 const params = new URLSearchParams(window.location.search);
-const petId = params.get("id");
+const shelterId = params.get("id");
 
 const firebaseConfig = {
   apiKey: "AIzaSyAd8SAQ0KtmsTPr9Fgw7-NxRtZNYt6O0q4",
@@ -29,11 +30,10 @@ const firebaseConfig = {
   measurementId: "G-4PC46EPXM2"
 };
 
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 로딩 기능
+// 로딩 기능 추가
 function hideLoading() {
   const loading = document.getElementById("loadingOverlay");
   if (!loading) return;
@@ -45,7 +45,6 @@ function hideLoading() {
     loading.style.display = "none";
   }, 400);
 }
-
 
 db.ref("rescuedAnimals/shelters/list")
   .once("value")
@@ -91,10 +90,22 @@ const PAGE_GROUP_SIZE = 10;
 db.ref("rescuedAnimals/shelters/list").on("value", snap => {
   const raw = snap.val();
   if (!raw) return;
+  const shelters = Object.values(raw);
 
+  // ✅ 1. If shelterId exists, find that shelter FIRST
+  if (shelterId) {
+    const target = shelters.find(s =>
+      String(s.info?.careRegNo) === String(shelterId)
+    );
+
+    if (target && target.info) {
+      console.log("🎯 URL로 전달된 보호소:", target.info.careNm);
+      renderShelterInfo(target.info);
+    }
+  }
   // 대시보드 데이터 먼저 준비
   prepareDashboardDataFromShelters(Object.values(raw));
-  
+
   // 그 다음 보호소 리스트 구축
   rebuildFromShelters(Object.values(raw));
 
@@ -134,8 +145,8 @@ function rebuildFromShelters(shelters) {
     regionMap[province].cities[city].shelters.push(info.careNm);
 
     // 카드용 (보호소 단위)
-    const capacity = (info.shelterCapacity === "미확인" || isNaN(info.shelterCapacity)) 
-      ? 0 
+    const capacity = (info.shelterCapacity === "미확인" || isNaN(info.shelterCapacity))
+      ? 0
       : Number(info.shelterCapacity);
 
     const pressure = capacity > 0 ? info.currentAnimals / capacity : 0;
@@ -165,11 +176,11 @@ function rebuildFromShelters(shelters) {
   console.log("📊 지역 요약:", regionSummary);
 
   initProvinceSelect();
-  
+
   // 초기에는 모든 보호소 표시 (대시보드 보호소 제외)
   filterOutDashboardShelter();
   applySortToVisible();
-  
+
   currentPage = 1;
   currentGroup = 0;
 
@@ -184,7 +195,7 @@ function rebuildFromShelters(shelters) {
  *************************/
 function filterOutDashboardShelter() {
   const dashboardShelterName = window.dashboardData?.shelterName;
-  
+
   if (dashboardShelterName) {
     visibleShelters = allShelters.filter(s => s.name !== dashboardShelterName);
     console.log(`🚫 대시보드 보호소 제외: ${dashboardShelterName}`);
@@ -215,7 +226,7 @@ provinceSelect.onchange = () => {
   citySelect.disabled = true;
 
   const province = provinceSelect.value;
-  
+
   // 시/도 미선택 시 전체 표시
   if (!province) {
     createShelterList();
@@ -246,14 +257,14 @@ citySelect.onchange = () => {
  *************************/
 function createShelterList(province = "", city = "") {
   console.log(`🔍 필터 적용: 시/도=${province}, 시/군/구=${city}`);
-  
+
   const dashboardShelterName = window.dashboardData?.shelterName;
-  
+
   // 필터링 (대시보드 보호소 제외)
   visibleShelters = allShelters.filter(s => {
     // 대시보드 보호소 제외
     if (dashboardShelterName && s.name === dashboardShelterName) return false;
-    
+
     if (province && s.province !== province) return false;
     if (city && s.city !== city) return false;
     return true;
@@ -317,7 +328,7 @@ function applySortToVisible() {
       });
       break;
   }
-  
+
   console.log(`✅ 정렬 완료 (${currentSort}):`, visibleShelters.slice(0, 5).map(s => ({
     name: s.name,
     pressure: (s.pressure * 100).toFixed(1) + '%',
@@ -388,7 +399,7 @@ function renderPage() {
   const pageItems = visibleShelters.slice(start, start + PAGE_SIZE);
 
   if (pageItems.length === 0) {
-    cardContainer.innerHTML = '<p style="grid-column: 1/-1; text-align:center; padding:40px;">필터 조건에 맞는 보호소가 없습니다.</p>';
+    cardContainer.innerHTML = '<p>필터 조건에 맞는 보호소가 없습니다.</p>';
     updateVisibleAnimalsCount();
     return;
   }
@@ -400,25 +411,48 @@ function renderPage() {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div class="card-image" style="background-image: url('${imagePath}'); background-size: cover; background-position: center;"></div>
-      <canvas id="${canvasId}" width="220" height="26"></canvas>
-      <div class="card-title">${item.name}</div>
-      <small>
-        압박 ${(item.pressure * 100).toFixed(1)}% ·
-        보호 ${item.current} ·
-        여유 ${item.free}
-      </small>
+      <img class="card-image" src="${imagePath}">
+      <div class="card-inner descript2">
+        <div class="t-S sub">보호센터</div>
+        <div class="card-title">${item.name}</div>
+        <small>
+          압박 ${(item.pressure * 100).toFixed(1)}% ·
+          보호 ${item.current} ·
+          여유 ${item.free}
+        </small>
+        <canvas id="${canvasId}" width="220" height="8"></canvas>
+      </div>
     `;
 
     card.onclick = () =>
-      openModal(
-        `<strong>${item.name}</strong><br><br>
-         📍 지역: ${item.province} ${item.city}<br>
-         📊 압박지수: ${(item.pressure * 100).toFixed(1)}%<br>
-         🐾 현재 보호: ${item.current}마리<br>
-         💺 수용 가능: ${item.capacity > 0 ? item.capacity + '마리' : '미확인'}<br>
-         ⚠️ 입양 시급도: ${item.urgency.toFixed(1)}`
-      );
+      openModal(`
+        <div class="descript3">
+          <div class="descript1">
+            <img class="card-image" src="${imagePath}">
+            <div class="t-XL">${item.name}</div>
+          </div>
+          <div class="descript2 t-L">
+            <div class="t-S sub">지역</div>
+            <div>${item.province} ${item.city}</div>
+          </div>
+          <div class="descript2 t-L">
+            <div class="t-S sub">압박지수</div>
+            <div>${(item.pressure * 100).toFixed(1)}%</div>
+          </div>
+          <div class="descript2 t-L">
+            <div class="t-S sub">현재 보호</div>
+            <div>${item.current}마리</div>
+          </div>
+          <div class="descript2 t-L">
+            <div class="t-S sub">수용 가능</div>
+            <div>${item.capacity > 0 ? item.capacity + '마리' : '미확인'}</div>
+          </div>
+          <div class="descript2 t-L">
+            <div class="t-S sub">입양 시급도</div>
+            <div>${item.urgency.toFixed(1)}</div>
+          </div>
+        </div>
+        `);
 
     cardContainer.appendChild(card);
     const chartData = getChartValue(item);
@@ -442,13 +476,13 @@ function renderPagination() {
 
   // visibleShelters 기준으로 페이지 계산
   const totalPages = Math.ceil(visibleShelters.length / PAGE_SIZE);
-  
+
   // 페이지가 없어도 항상 표시 (공간 유지)
   if (totalPages === 0) {
     pagination.style.visibility = 'hidden';
     return;
   }
-  
+
   pagination.style.visibility = 'visible';
 
   const startPage = currentGroup * PAGE_GROUP_SIZE + 1;
@@ -507,7 +541,7 @@ function renderGauge(id, value, color) {
         data: [value],
         backgroundColor: color,
         borderRadius: 8,
-        barThickness: 14
+        // barThickness: 14
       }]
     },
     options: {
@@ -682,35 +716,35 @@ function prepareDashboardDataFromShelters(shelters) {
 
   // - 3. 지역 보호율 계산 (해당 지역 보호소 개수 / 전체 보호소 개수)
 
-// 전체 보호소 개수
-const totalShelterCount = shelters.filter(s => s.info && s.info.orgNm).length;
+  // 전체 보호소 개수
+  const totalShelterCount = shelters.filter(s => s.info && s.info.orgNm).length;
 
-// 해당 지역 보호소 개수 (같은 city 기준)
-const regionShelterCount = shelters.filter(s =>
-  s.info &&
-  s.info.orgNm &&
-  s.info.orgNm.includes(city)
-).length;
-// 같은 지역(city 기준) 보호소 목록
-const regionShelters = shelters.filter(s =>
-  s.info &&
-  s.info.orgNm &&
-  s.info.orgNm.includes(city)
-);
+  // 해당 지역 보호소 개수 (같은 city 기준)
+  const regionShelterCount = shelters.filter(s =>
+    s.info &&
+    s.info.orgNm &&
+    s.info.orgNm.includes(city)
+  ).length;
+  // 같은 지역(city 기준) 보호소 목록
+  const regionShelters = shelters.filter(s =>
+    s.info &&
+    s.info.orgNm &&
+    s.info.orgNm.includes(city)
+  );
 
 
-// 변경된 지역 보호율
-const localRate = totalShelterCount > 0
-  ? (regionShelterCount / totalShelterCount) * 100
-  : 0;
+  // 변경된 지역 보호율
+  const localRate = totalShelterCount > 0
+    ? (regionShelterCount / totalShelterCount) * 100
+    : 0;
 
-console.log(
-  `📊 지역 보호율(보호소 기준): ${regionShelterCount} / ${totalShelterCount} = ${localRate.toFixed(1)}%`
-);
+  console.log(
+    `📊 지역 보호율(보호소 기준): ${regionShelterCount} / ${totalShelterCount} = ${localRate.toFixed(1)}%`
+  );
 
-console.log("전체 보호소 수:", totalShelterCount);
-console.log("지역 보호소 수:", regionShelterCount);
-console.log("city 기준:", city);
+  console.log("전체 보호소 수:", totalShelterCount);
+  console.log("지역 보호소 수:", regionShelterCount);
+  console.log("city 기준:", city);
 
 
   // - 4. 지역 대비 보호소 수용률 계산
@@ -760,7 +794,7 @@ console.log("city 기준:", city);
 
   console.log("📊 대시보드 데이터:", window.dashboardData);
   console.log("📍 보호소 주소:", window.dashboardShelterAddress);
-  
+
   // 보호소 정보 렌더링
   renderShelterInfo(targetShelter);
 
@@ -899,7 +933,7 @@ function initKakaoMap() {
   try {
     const map = new kakao.maps.Map(mapContainer, mapOption);
     console.log("✅ 카카오맵 생성 완료");
-    
+
     // 대시보드 보호소 마커 표시
     if (window.dashboardData && window.dashboardShelterAddress) {
       console.log(`📍 마커 표시 시도: ${window.dashboardData.shelterName}`);
@@ -914,7 +948,7 @@ function initKakaoMap() {
           displayShelterOnMap(map, window.dashboardShelterAddress, window.dashboardData.shelterName);
         }
       }, 500);
-      
+
       // 10초 후 타임아웃
       setTimeout(() => {
         clearInterval(checkInterval);
@@ -941,9 +975,9 @@ function displayShelterOnMap(map, address, shelterName) {
   const geocoder = new kakao.maps.services.Geocoder();
 
   // 주소로 좌표 검색
-  geocoder.addressSearch(address, function(result, status) {
+  geocoder.addressSearch(address, function (result, status) {
     console.log("📊 주소 검색 결과:", status);
-    
+
     if (status === kakao.maps.services.Status.OK) {
       const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
 
@@ -955,7 +989,7 @@ function displayShelterOnMap(map, address, shelterName) {
       setTimeout(() => {
         map.relayout();
         map.setCenter(coords); // 다시 한번 중심 설정
-        
+
         // 마커 생성
         const marker = new kakao.maps.Marker({
           map: map,
@@ -964,38 +998,38 @@ function displayShelterOnMap(map, address, shelterName) {
 
         // 인포윈도우 생성
         const infowindow = new kakao.maps.InfoWindow({
-          content: `<div style="padding:10px 15px;font-size:14px;font-weight:bold;white-space:nowrap;">${shelterName}</div>`
+          content: `<div class="kkmap">${shelterName}</div>`
         });
 
         infowindow.open(map, marker);
-        
+
         console.log(`🗺️ 지도 표시 성공: ${shelterName} (${result[0].y}, ${result[0].x})`);
       }, 100);
 
     } else {
       console.warn(`⚠️ 주소 변환 실패 (${status}): ${address}`);
-      
+
       // 주소 검색 실패 시 공백 제거 후 재시도
       const cleanAddress = address.replace(/\s+/g, ' ').trim();
       if (cleanAddress !== address) {
         console.log(`🔄 공백 정리 후 재시도: ${cleanAddress}`);
-        geocoder.addressSearch(cleanAddress, function(result2, status2) {
+        geocoder.addressSearch(cleanAddress, function (result2, status2) {
           if (status2 === kakao.maps.services.Status.OK) {
             const coords = new kakao.maps.LatLng(result2[0].y, result2[0].x);
-            
+
             map.setCenter(coords);
             map.setLevel(4);
-            
+
             setTimeout(() => {
               map.relayout();
               map.setCenter(coords);
-              
+
               const marker = new kakao.maps.Marker({ map: map, position: coords });
               const infowindow = new kakao.maps.InfoWindow({
-                content: `<div style="padding:10px 15px;font-size:14px;font-weight:bold;">${shelterName}</div>`
+                content: `<div class="kkmap2">${shelterName}</div>`
               });
               infowindow.open(map, marker);
-              
+
               console.log(`🗺️ 재시도 성공: ${shelterName}`);
             }, 100);
           } else {
