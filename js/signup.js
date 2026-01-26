@@ -60,6 +60,8 @@ const signUpBtn = document.getElementById("btn-signup");
 // DOM요소 (div)
 const shelterBox = document.querySelector(".signup-shelter");
 const fosterBox = document.querySelector(".signup-users");
+const signupSelectBox = document.getElementById("signupSelect");
+const signupBtnGroup = document.getElementById("signupBtnGroup");
 
 /////////////////////////////////////////////////////
 
@@ -72,8 +74,10 @@ let selectedUserType = null;
 // Step 1: 보호소 선택
 selectShelterBtn.addEventListener("click", () => {
   selectedUserType = 'shelter';
+  signupSelectBox.classList.add("hidden");
   shelterBox.classList.remove("hidden");
   fosterBox.classList.add("hidden");
+  signupBtnGroup.classList.remove("hidden");
   console.log("보호소버튼클릭완료", selectedUserType);
 });
 
@@ -109,7 +113,7 @@ const signUpShelter = async () => {
         businessNumber: shelterBizNmEl.value,
         name: shelterNmEl.value,
         regNum: shelterRegNmEl.value,
-        address: shelterAddressEl.textContent,
+        address: shelterAddressEl.value,
       }
     };
     console.log(userData, "데이터입력값확인");
@@ -130,11 +134,13 @@ const signUpShelter = async () => {
 
 
 // 2. 임시보호
-// Step 1: 보호소 선택
+// Step 1: 임시보호자 선택
 selectFosterBtn.addEventListener("click", () => {
   selectedUserType = 'foster';
+  signupSelectBox.classList.add("hidden");
   fosterBox.classList.remove("hidden");
   shelterBox.classList.add("hidden");
+  signupBtnGroup.classList.remove("hidden");
   console.log("개인버튼클릭완료", selectedUserType);
 });
 
@@ -222,5 +228,16 @@ signUpBtn.addEventListener("click", async () => {
     alert('회원 유형을 선택해주세요.');
   }
   console.log("회원가입버튼클릭했다");
+});
+
+// Step 4: 이전 버튼 이벤트 연결
+beforeBtn.addEventListener("click", () => {
+  // 선택 화면으로 돌아가기
+  signupSelectBox.classList.remove("hidden");
+  shelterBox.classList.add("hidden");
+  fosterBox.classList.add("hidden");
+  signupBtnGroup.classList.add("hidden");
+  selectedUserType = null;
+  console.log("이전버튼클릭 - 선택화면으로 돌아감");
 });
 

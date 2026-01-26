@@ -310,7 +310,7 @@ function renderFosterListPage() {
         // 경력 기간 표시 (2년 이상이면 숙련자 파란색, 그 외는 회색)
         const isExpert = experienceYears >= 2;
         const experienceClass = isExpert ? 'experience-years' : 'experience-years-novice';
-        const experienceLabel = `<span class="${experienceClass}">${experienceYears}</span>`;
+        const experienceLabel = `<span class="${experienceClass}" title="경력(year)">${experienceYears}</span>`;
 
         return `
       <div class="foster-list" data-uid="${escapeHtml(u.uid)}">

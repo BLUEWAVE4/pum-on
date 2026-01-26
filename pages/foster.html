@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/index.css" />
   <link rel="stylesheet" href="../css/common.css" />
   <link rel="stylesheet" href="../css/foster-style.css" />
+  <link rel="stylesheet" href="../css/signup.css" />
   <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
@@ -27,10 +28,10 @@
   <!-- Foster 관련 모듈들 -->
   <script type="module" src="../js/foster-dashboard.js"></script>
   <script type="module" src="../js/api-index.js"></script>
-  <script type="module" src="../js/auth-state.js"></script>
-  <script type="module" src="../js/foster-availability.sync.js"></script>
+  <!-- <script type="module" src="../js/auth-state.js"></script> -->
+  <!-- <script type="module" src="../js/foster-availability.sync.js"></script> -->
   <script type="module" src="../js/foster-filter.js"></script>
-  <script src="../js/accOptions.js" defer></script>
+  <script src="../js/acc-options.js" defer></script>
   <script src="../js/login.js" defer></script>
   <!-- 더미생성코드 -->
   <!-- <script type="module" src="../js/seed-foster-dummy.js" defer></script> -->
@@ -62,8 +63,13 @@
       <!-- account area -->
       <div class="acc-action">
 
+        <!-- 로딩 상태 -->
+        <div class="acc-loading" id="accLoading">
+          <div class="acc-spinner"></div>
+        </div>
+
         <!-- 비로그인 상태 -->
-        <div class="acc-guest" id="accGuest">
+        <div class="acc-guest" id="accGuest" style="display:none;">
           <a href="../pages/login.html" class="btn-login">로그인</a>
           <a href="../pages/signup.html" class="btn-signup">회원가입</a>
         </div>
@@ -88,8 +94,7 @@
                 임시보호 가능
               </label>
             </li>
-            <li class="link3"><a href="">정보 수정</a></li>
-            <li class="link3"><button id="logoutBtn">로그아웃</button></li>
+            <li class="link4"><button id="logoutBtn">로그아웃</button></li>
           </ul>
         </div>
 

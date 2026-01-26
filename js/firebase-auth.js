@@ -33,8 +33,8 @@ async function checkAuth(requiredUserType = null) {
                 if (!user) {
                     console.log("로그아웃");
 
-                    // 로그인 페이지가 아닐 때만 리다이렉트
-                    if (!location.pathname.includes('login.html')) {
+                    // 로그인/회원가입 페이지가 아닐 때만 리다이렉트
+                    if (!location.pathname.includes('login.html') && !location.pathname.includes('signup.html')) {
                         alert('로그인이 필요합니다.');
                         // location.href = './pages/login.html';
                     }
@@ -79,3 +79,48 @@ async function checkAuth(requiredUserType = null) {
 // - "shelter" 또는 "foster": 해당 권한만 허용
 // - resolve: 로그인 성공 + 권한 있음
 // - reject: 로그인 안 됨 또는 권한 없음
+
+///////////////////////////////////////////////
+// 헤더 UI 업데이트 함수
+///////////////////////////////////////////////
+function updateHeaderUI(user, userData) {
+    const accLoading = document.getElementById('accLoading');
+    const accGuest = document.getElementById('accGuest');
+    const accUser = document.getElementById('accUser');
+    const accName = document.getElementById('accName');
+    const accRole = document.getElementById('accRole');
+
+    // 로딩 스피너 숨김
+    if (accLoading) accLoading.style.display = 'none';
+
+    if (user && userData) {
+        // 로그인 상태
+        if (accGuest) accGuest.style.display = 'none';
+        if (accUser) accUser.style.display = 'flex';
+        if (accName) accName.textContent = userData.fosterInfo?.name || userData.shelterInfo?.name || '사용자';
+        if (accRole) {
+            const roleMap = { foster: '임시 보호자', shelter: '보호소' };
+            accRole.textContent = roleMap[userData.userType] || userData.userType;
+        }
+    } else {
+        // 비로그인 상태
+        if (accGuest) accGuest.style.display = 'flex';
+        if (accUser) accUser.style.display = 'none';
+    }
+}
+
+// 페이지 로드 시 인증 상태 확인 및 UI 업데이트
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            const snapshot = await database.ref('users/' + user.uid).once('value');
+            const userData = snapshot.val();
+            updateHeaderUI(user, userData);
+        } catch (error) {
+            console.error('헤더 UI 업데이트 실패:', error);
+            updateHeaderUI(null, null);
+        }
+    } else {
+        updateHeaderUI(null, null);
+    }
+});

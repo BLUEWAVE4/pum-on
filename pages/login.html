@@ -5,31 +5,73 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>로그인 - 품:ON</title>
+  <link rel="stylesheet" href="../css/index.css" />
+  <link rel="stylesheet" href="../css/copy.css" />
   <link rel="stylesheet" href="../css/common.css" />
   <link rel="stylesheet" href="../css/login.css" />
+  <link rel="stylesheet" href="../css/foster-style.css" />
   <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 </head>
 
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="../index.html" class="brand" aria-label="홈으로 이동">
-        <img class="logo" src="../assets/images/ci.svg" alt="로고" />
-      </a>
+  <header class="wrap" id="header">
+    <div class="container">
+      <!-- logo area -->
+      <div class="logo">
+        <a href="../index.html"><img src="../assets/images/header-logo.svg" alt="logo"></a>
+      </div>
+      <!-- menu area -->
+      <ul class="nav-wrapper">
+        <li class="select">
+          <a href="../index.html" class="link">홈</a>
+        </li>
+        <li class="select">
+          <a href="/services" class="link">보호소</a>
+        </li>
+        <li class="select">
+          <a href="/shelters" class="link">입양동물</a>
+        </li>
+        <li class="select">
+          <a href="./foster.html" class="link">임시보호자</a>
+        </li>
+      </ul>
+      <!-- account area -->
+      <div class="acc-action">
+        <!-- 로딩 상태 -->
+        <div class="acc-loading" id="accLoading">
+          <div class="acc-spinner"></div>
+        </div>
 
-      <nav class="main-nav" aria-label="주요 메뉴">
-        <ul class="nav-list">
-          <li><a href="../index.html">홈</a></li>
-          <li><a href="/shelters">보호소</a></li>
-          <li><a href="/animals">입양동물</a></li>
-          <li><a href="./foster.html">임시보호</a></li>
-        </ul>
-      </nav>
+        <!-- 비로그인 상태 -->
+        <div class="acc-guest" id="accGuest" style="display:none;">
+          <a href="./login.html" class="btn-login">로그인</a>
+          <a href="./signup.html" class="btn-signup">회원가입</a>
+        </div>
 
-      <div class="auth-actions">
-        <a href="./login.html" class="btn-login">로그인</a>
-        <a href="./signup-test.html" class="btn-signup">회원가입</a>
+        <!-- 로그인 상태 -->
+        <div class="acc-flex" id="accUser" style="display:none;">
+          <div class="acc-trigger" id="accTrigger">
+            <div class="acc">
+              <img src="../assets/images/account.svg">
+            </div>
+            <div class="name-action">
+              <div class="t-M" id="accName">사용자</div>
+              <div class="t-S" id="accRole">임시 보호자</div>
+            </div>
+          </div>
+
+          <ul class="options t-M" id="accOptions">
+            <li class="link4">
+              <label class="chkLabel" for="protectable">
+                <input type="checkbox" id="protectable">
+                <span class="checkmark"></span>
+                임시보호 가능
+              </label>
+            </li>
+            <li class="link4"><button id="logoutBtn">로그아웃</button></li>
+          </ul>
+        </div>
       </div>
     </div>
   </header>
@@ -65,38 +107,15 @@
             />
           </div>
 
-          <div class="form-options">
-            <label class="remember-me">
-              <input type="checkbox" id="rememberMe" />
-              <span>로그인 상태 유지</span>
-            </label>
-            <a href="#" class="forgot-password">비밀번호 찾기</a>
-          </div>
-
           <button type="submit" class="btn-login-submit" id="loginBtn">
             로그인
           </button>
         </form>
 
         <div class="login-footer">
-          <p>아직 회원이 아니신가요? <a href="./signup-test.html" class="link-signup">회원가입</a></p>
+          <p>아직 회원이 아니신가요? <a href="./signup.html" class="link-signup">회원가입</a></p>
         </div>
 
-        <div class="divider">
-          <span>또는</span>
-        </div>
-
-        <div class="social-login">
-          <button class="btn-social btn-google" type="button">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9.003 18z" fill="#34A853"/>
-              <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71 0-.593.102-1.17.282-1.71V4.96H.957C.347 6.175 0 7.55 0 9.002c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
-            </svg>
-            Google로 로그인
-          </button>
-        </div>
       </div>
     </div>
   </main>
@@ -109,7 +128,7 @@
           <span aria-hidden="true">·</span>
           <a href="/privacy">개인정보처리방침</a>
         </div>
-        <p class="copyright">© 2026 품:ON. All rights reserved.</p>
+        <p class="copyright">© 2026 Life Bridge. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -121,6 +140,7 @@
 
   <!-- Scripts -->
   <script src="../js/firebase-auth.js"></script>
+  <script src="../js/acc-options.js" defer></script>
   <script src="../js/login.js"></script>
 </body>
 

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailEl = document.getElementById("email");
     const passwordEl = document.getElementById("password");
     const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logout");
+    const logoutBtn = document.getElementById("logoutBtn");
 
     // 로그인 함수!!!
     const logIn = async (e) => {
@@ -49,11 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 로그아웃 함... 수...
     const logOut = async (e) => {
-        e.preventDefault;
+        e.preventDefault();
         try {
             await auth.signOut();
             alert('로그아웃 되었습니다.');
-            location.href = './pages/login.html';
+            const isInPages = location.pathname.includes('/pages/');
+            location.href = isInPages ? './login.html' : './pages/login.html';
         } catch (error) {
             console.error('로그아웃 오류:', error);
             alert('로그아웃 실패');
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(loginBtn) loginBtn.addEventListener("click", logIn);
     if(logoutBtn) logoutBtn.addEventListener("click", logOut);
 
-    if (!location.pathname.includes('login.html')) {
+    if (!location.pathname.includes('login.html') && !location.pathname.includes('signup.html')) {
         checkAuth().catch(error => {
             console.error('Auth check failed:', error);
         });

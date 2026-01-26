@@ -325,6 +325,30 @@ async function checkDateExists(yearMonth, day) {
   return snapshot.exists();
 }
 
+// 빈 일자 탐색 함수 (최대 maxDays일 전까지 확인)
+async function getMissingDates(maxDays = 7) {
+  const today = new Date();
+  const missingDates = [];
+
+  for (let i = 0; i < maxDays; i++) {
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() - i);
+
+    const dateStr = toYYYYMMDD(targetDate);
+    const yearMonth = dateStr.slice(0, 6);
+    const day = dateStr.slice(6, 8);
+
+    const exists = await checkDateExists(yearMonth, day);
+
+    if (!exists) {
+      missingDates.push(dateStr);
+    }
+  }
+
+  // 오래된 날짜부터 처리하도록 정렬
+  return missingDates.sort();
+}
+
 // ========== 보호소 매칭 로직 ==========
 
 // 더 이상 사용하지 않음 - extractSheltersFromAnimals로 대체
@@ -628,74 +652,53 @@ async function initialDataCollection() {
 
 // 일일 업데이트 로직
 async function dailyUpdate() {
-  // console.log("\n" + "=".repeat(60));
   console.log("🔄 일일 업데이트 시작");
-  // console.log("=".repeat(60) + "\n");
 
   const today = new Date();
   const todayStr = toYYYYMMDD(today);
-  const lastUpdated = await getLastUpdatedDate();
   let totalBytes = 0;
 
-  // console.log(`📅 오늘 날짜: ${todayStr}`);
-  // console.log(`📅 마지막 업데이트: ${lastUpdated || "없음"}\n`);
+  // 1. 빈 일자 확인 (최근 7일)
+  console.log("📅 최근 7일간 빈 일자 확인 중...");
+  const missingDates = await getMissingDates(7);
 
-  if (!lastUpdated) {
-    console.log("⚠️  마지막 업데이트 정보 없음. 초기 데이터 수집 시작...\n");
+  if (missingDates.length > 0) {
+    console.log(`⚠️  빈 일자 발견: ${missingDates.join(", ")}`);
+    console.log(`📥 ${missingDates.length}일치 데이터 보충 시작...\n`);
 
-    // 1. 오늘 데이터 수집
-    const dateResult = await updateDataForDate(todayStr);
-    if (dateResult) totalBytes += dateResult.bytes;
-
-    // 2. shelters 생성 (현재 data에 있는 데이터로부터)
-    const shelterResult = await updateShelters();
-    if (shelterResult) totalBytes += shelterResult.bytes;
-
-    // 3. meta 초기화
-    await updateMeta({
-      lastUpdated: new Date().toISOString(),
-      lastUpdatedDate: todayStr,
-    });
-
-    console.log(`✅ 초기 데이터 수집 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
-    return;
-  }
-
-  if (todayStr !== lastUpdated) {
-    console.log("🆕 새로운 날짜 감지. 업데이트 시작...\n");
-
-    // 1. 오늘 데이터 수집
-    const dateResult = await updateDataForDate(todayStr);
-    if (dateResult) totalBytes += dateResult.bytes;
-
-    // 2. shelters 재생성 (1년치 최신 상태)
-    const shelterResult = await updateShelters();
-    if (shelterResult) totalBytes += shelterResult.bytes;
-
-    // 3. meta 업데이트
-    await updateMeta({
-      lastUpdated: new Date().toISOString(),
-      lastUpdatedDate: todayStr,
-    });
-
-    console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
+    // 2. 빈 일자 데이터 수집
+    for (const dateStr of missingDates) {
+      try {
+        const dateResult = await updateDataForDate(dateStr);
+        if (dateResult) totalBytes += dateResult.bytes;
+      } catch (error) {
+        console.error(`❌ ${dateStr} 데이터 수집 실패:`, error.message);
+      }
+    }
   } else {
-    // console.log("ℹ️  이미 최신 상태입니다. 실시간 업데이트 확인 중...\n");
+    console.log("✅ 최근 7일간 빈 일자 없음");
 
     // 오늘 데이터 재수집 (실시간 변경사항 반영)
-    const dateResult = await updateDataForDate(todayStr);
-    if (dateResult) totalBytes += dateResult.bytes;
-
-    // shelters 재생성
-    const shelterResult = await updateShelters();
-    if (shelterResult) totalBytes += shelterResult.bytes;
-
-    // console.log(`✅ 실시간 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
+    console.log(`📥 오늘(${todayStr}) 데이터 갱신 중...`);
+    try {
+      const dateResult = await updateDataForDate(todayStr);
+      if (dateResult) totalBytes += dateResult.bytes;
+    } catch (error) {
+      console.error(`❌ ${todayStr} 데이터 수집 실패:`, error.message);
+    }
   }
 
-  // console.log("=".repeat(60));
-  // console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})`);
-  // console.log("=".repeat(60) + "\n");
+  // 3. shelters 재생성
+  const shelterResult = await updateShelters();
+  if (shelterResult) totalBytes += shelterResult.bytes;
+
+  // 4. meta 업데이트
+  await updateMeta({
+    lastUpdated: new Date().toISOString(),
+    lastUpdatedDate: todayStr,
+  });
+
+  console.log(`✅ 일일 업데이트 완료 (총 다운로드: ${formatBytes(totalBytes)})\n`);
 }
 
 

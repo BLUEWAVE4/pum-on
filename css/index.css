@@ -197,7 +197,8 @@ li:hover .link {
 
 .container {
     display: flex;
-    width: 1440x;
+    width: 100%;
+    max-width: var(--layout-max-width);
     margin: auto;
     justify-content: space-between;
     align-items: center;

@@ -458,14 +458,23 @@ function renderStatsCharts() {
     regionChart = null;
   }
 
-  const regions = [
+  const allRegions = [
     "서울", "부산", "대구", "인천", "광주", "세종", "대전", "울산",
     "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"
   ];
 
   const fosters = getAllFosters();
   const filtered = filterFostersForRegionChart(fosters);
-  const targetData = regions.map((label) => countByRegionLabel(filtered, label));
+
+  // 지역별 데이터 집계 후 값 기준 내림차순 정렬
+  const regionData = allRegions.map((label) => ({
+    region: label,
+    count: countByRegionLabel(filtered, label)
+  }));
+  regionData.sort((a, b) => b.count - a.count);
+
+  const regions = regionData.map(d => d.region);
+  const targetData = regionData.map(d => d.count);
 
   const colors = regions.map(region =>
     region === myRegion ? "#6673FF" : "rgba(102, 115, 255, 0.25)"
