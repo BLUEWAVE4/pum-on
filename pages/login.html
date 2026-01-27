@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>로그인 - 품:ON</title>
+        <!-- font -->
+        <link
+            rel="stylesheet"
+            as="style"
+            crossorigin
+            href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+        />
+        <!-- CSS -->
+        <link rel="stylesheet" href="../css/index.css" />
+        <link rel="stylesheet" href="../css/common.css" />
+        <link rel="stylesheet" href="../css/login.css" />
+        <!-- favicon -->
+        <link rel="icon" type="svg" href="../assets/images/favicon.svg" />
+    </head>
+
+    <body>
+        <header class="wrap" id="header">
+            <div class="container">
+                <!-- logo area -->
+                <div class="logo">
+                    <a href="./index.html"><img src="../assets/images/ci4.svg" alt="logo" /></a>
+                </div>
+                <!-- menu area -->
+                <ul class="nav-wrapper">
+                    <li class="select">
+                        <a href="/about" class="link">홈</a>
+                    </li>
+                    <li class="select">
+                        <a href="/services" class="link">보호소</a>
+                    </li>
+                    <li class="select">
+                        <a href="/shelters" class="link">입양동물</a>
+                    </li>
+                    <li class="select">
+                        <a href="/pages/foster.html" class="link">임시보호자</a>
+                    </li>
+                </ul>
+                <!-- account area -->
+                <div class="acc-action">
+                    <div class="acc-flex" id="accMenu">
+                        <div class="acc-trigger" id="accTrigger">
+                            <div class="acc">
+                                <img src="../assets/images/account.svg" />
+                            </div>
+                            <div class="name-action">
+                                <div class="t-M" id="accName">가나디</div>
+                                <div class="t-S" id="heir">임시 보호자</div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="options t-M" id="accOptions">
+                        <li class="link4">
+                            <label class="chkLabel" for="protectable">
+                                <input type="checkbox" checked="checked" id="protectable" />
+                                <span class="checkmark"></span>
+                                <span class="fosent">임시보호 가능</span>
+                            </label>
+                        </li>
+                        <li class="link3"><a href="">정보 수정</a></li>
+                        <li class="link3"><a href="" id="logout">로그아웃</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <main class="login-page">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h1>로그인</h1>
+                        <p class="login-subtitle">품:ON에 오신 것을 환영합니다</p>
+                    </div>
+
+                    <form class="login-form" id="loginForm">
+                        <div class="form-group">
+                            <label for="email">이메일</label>
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="이메일을 입력하세요"
+                                required
+                                autocomplete="email"
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">비밀번호</label>
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="비밀번호를 입력하세요"
+                                required
+                                autocomplete="current-password"
+                            />
+                        </div>
+
+                        <button type="submit" class="btn-login-submit" id="loginBtn">로그인</button>
+                    </form>
+
+                    <div class="login-footer">
+                        <p>아직 회원이 아니신가요? <a href="./signup.html" class="link-signup">회원가입</a></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- footer area -->
+        <footer class="flx-cl">
+            <ul class="fsite">
+                <li id="tos">
+                    <span class="link2">이용약관</span>
+                </li>
+                <li>
+                    <span class="link2">개인정보처리방침</span>
+                </li>
+                <li>
+                    <span class="link2">후원하기</span>
+                </li>
+            </ul>
+            <div class="fsite">
+                <a href="http://www.mois.go.kr" alt="행정안전부 홈페이지로 갑니다">
+                    <img src="../assets/images/행정안전부_국_좌우.svg" alt="행정안전부" class="flogo" />
+                </a>
+                <div class="description">
+                    <p>(61475) 광주 동구 중앙로 196 3층 301호A</p>
+                    <p>©Crunky all right reserved.</p>
+                </div>
+            </div>
+        </footer>
+
+        <!-- 스크립트 -->
+        <!-- firebase 서비스 추가하기(Core-필수, Auth, Realtime DataBase, Storage ) -->
+        <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-storage-compat.js"></script>
+        <script src="../js/firebase-auth.js"></script>
+        <script src="../js/login.js"></script>
+    </body>
+</html>
