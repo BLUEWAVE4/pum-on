@@ -1,8 +1,3 @@
-/*
-  [기능 정의]
-  input입력 - api 데이터 조회 - 회원가입버튼눌렀을때 db저장되는 로직
-*/
-
 // ========== DOM요소 (보호소) ==========
 const selectShelterBtn = document.getElementById('btn-select-shelter');
 
@@ -15,6 +10,9 @@ const shelterMgpEl = document.getElementById('shelter-manager-phone');
 const shelterOwnerNameEl = document.getElementById('shelter-owner-name');
 const shelterBizNmEl = document.getElementById('shelter-business-number');
 const shelterNmEl = document.getElementById('shelter-name');
+// 원래는 보호소 등록번호로 조회하지만
+// 경기도API 기준 보호소 전화번호로 key값 확인이 가능해
+// 일시적으로 대체해서 사용 => 보호소 전화번호
 const shelterRegNmEl = document.getElementById('shelter-registration-number');
 const shelterAddressEl = document.getElementById('shelter-address');
 
@@ -50,6 +48,7 @@ const userCertNmEl = document.getElementById('user-cert-number');
 // ========== DOM요소 (전송) ==========
 const beforeBtns = document.querySelectorAll('.btn-before');
 const signUpBtns = document.querySelectorAll('.btn-signup');
+const searchBtn = document.getElementById("searchBtn");
 
 // ========== DOM요소 (div) ==========
 const signupSelect = document.getElementById('signupSelect');
@@ -120,7 +119,6 @@ async function findShelterByPhone() {
 }
 
 // ========== 지도 표시 함수 ==========
-// displayMap 함수 - kakao.maps.load() 제거
 function displayMap(lat, lng) {
     console.log(`지도 표시: 위도 ${lat}, 경도 ${lng}`);
     
@@ -161,6 +159,10 @@ shelterRegNmEl.addEventListener('keypress', (e) => {
         findShelterByPhone();
     }
 });
+searchBtn.addEventListener("click", () => {
+    findShelterByPhone();
+});
+
 
 // ========== 보호소 선택 버튼 ==========
 shelterBtn.addEventListener('click', () => {
