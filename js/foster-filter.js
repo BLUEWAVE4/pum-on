@@ -349,15 +349,6 @@ function renderFosterListPage() {
     renderPagination(filteredCache.length);
 }
 
-const realTotalPages = Math.ceil(filteredCache.length / PAGE_SIZE);
-// 실제 데이터가 존재하는 페이지 수
-// 예: 데이터 7개 → 1페이지
-// 예: 데이터 18개 → 2페이지
-
-const uiTotalPages = Math.max(5, realTotalPages);
-// UI에 보여줄 페이지 수 (최소 5)
-
-
 /* =========================
    페이지네이션 렌더 (당신 HTML 구조 사용)
    - 최소 1페이지 표시
