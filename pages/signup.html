@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="../css/index.css" />
     <link rel="stylesheet" href="../css/common.css" />
     <link rel="stylesheet" href="../css/signup.css" />
-    <link rel="stylesheet" href="../css/signup.css">
     <!-- map api -->
     <script type="text/javascript"
         src="//dapi.kakao.com/v2/maps/sdk.js?appkey=d4646de6df204af0e6f14b73a2dd2a44"></script>
@@ -78,7 +77,8 @@
     <main class="page">
         <!-- 회원가입 유형 선택 -->
         <div class="signup-select" id="signupSelect">
-            <h1 class="signup-select-title">회원가입 구분</h1>
+            <h1 class="signup-select-title">회원가입</h1>
+            <p class="signup-select-sub">회원가입 유형을 선택해주세요.</p>
             <div class="signup-select-cards">
                 <button class="signup-card shelter" id="btn-select-shelter">
                     <img src="../assets/images/signup-shelter-icon.png" alt="보호소 아이콘" />
@@ -93,6 +93,10 @@
         <!-- 1) shelter 버튼 클릭시 display -->
         <!-- 보호소 가입 입력 폼 -->
         <section class="signup-shelter hidden">
+            <div>
+                <h1 class="signup-select-title">회원가입</h1>
+                <p class="signup-select-sub">회원가입 정보를 입력해주세요.</p>
+            </div>
             <div class="form-group">
                 <label>이메일</label>
                 <div class="flex3">
@@ -125,20 +129,26 @@
                 <label>보호소명</label>
                 <input type="text" id="shelter-name" />
                 <label>보호소 전화번호</label>
-                <input type="text" id="shelter-registration-number" />
-                <button class="btn" id="searchBtn">조회하기</button>
+                <div class="flex3">
+                    <input type="text" id="shelter-registration-number" />
+                    <button class="btn" id="searchBtn">조회하기</button>
+                </div>
                 <label>주소</label>
                 <div class="shelter-map" id="map"></div>
                 <p id="shelter-address"></p>
             </div>
             <div class="btn-group">
                 <button class="btn-before">이전</button>
-                <button class="btn-signup">회원가입 완료</button>
+                <button class="btn-signup">회원가입</button>
             </div>
         </section>
         <!-- 2) foster 버튼 클릭시 display -->
         <!-- 개인(임시보호자) 가입 입력 폼 -->
         <section class="signup-users hidden">
+            <div>
+                <h1 class="signup-select-title">회원가입</h1>
+                <p class="signup-select-sub">회원가입 정보를 입력해주세요.</p>
+            </div>
             <div class="form-group">
                 <label>이메일</label>
                 <div class="flex3">
@@ -218,7 +228,7 @@
             </div>
             <div class="btn-group">
                 <button class="btn-before">이전</button>
-                <button class="btn-signup">회원가입 완료</button>
+                <button class="btn-signup">회원가입</button>
             </div>
         </section>
     </main>
@@ -255,7 +265,6 @@
     <script src="https://www.gstatic.com/firebasejs/12.7.0/firebase-storage-compat.js"></script>
     <!--  -->
     <script src="../js/firebase-auth.js"></script>
-    <!-- <script src="../js/signup.js"></script> -->
     <script src="../js/signup2.js"></script>
 </body>
 

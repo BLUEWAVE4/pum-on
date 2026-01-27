@@ -7,7 +7,7 @@
     align-items: center;
     justify-content: center;
     padding: 2rem 1rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+    background: var(--gradient-1);
 }
 
 .hidden {
@@ -47,14 +47,18 @@ span {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2.5rem;
 }
 
 .signup-select-title {
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: var(--font-size-1);
+    font-weight: var(--font-weight-1);
     color: var(--color-text);
-    margin: 0;
+    margin-bottom: 1rem;
+}
+.signup-select-sub{
+    font-size: var(--font-size-4);
+    color: var(--color-text);
+    margin-bottom: 2.5rem;
 }
 
 .signup-select-cards {
@@ -89,8 +93,8 @@ span {
 
 /* 카드 내 텍스트 영역 */
 .signup-card .card-label {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-3);
+    font-weight: var(--font-weight-2);
     color: var(--color-text);
     text-align: center;
     line-height: 1.4;
