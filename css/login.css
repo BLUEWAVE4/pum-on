@@ -13,14 +13,14 @@
 
 .login-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     margin: 0 auto;
 }
 
 .login-card {
     background: var(--color-bg-common);
     border-radius: var(--radius-card-lg);
-    padding: 5rem;
+    padding: 3rem 5rem;
     box-shadow: var(--shdow-lg);
 }
 

@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="../css/index.css" />
         <link rel="stylesheet" href="../css/common.css" />
         <link rel="stylesheet" href="../css/login.css" />
+        <link rel="stylesheet" href="../css/foster-style.css">
         <!-- favicon -->
         <link rel="icon" type="svg" href="../assets/images/favicon.svg" />
     </head>
@@ -43,28 +44,34 @@
                 </ul>
                 <!-- account area -->
                 <div class="acc-action">
-                    <div class="acc-flex" id="accMenu">
-                        <div class="acc-trigger" id="accTrigger">
-                            <div class="acc">
-                                <img src="../assets/images/account.svg" />
-                            </div>
-                            <div class="name-action">
-                                <div class="t-M" id="accName">가나디</div>
-                                <div class="t-S" id="heir">임시 보호자</div>
-                            </div>
+                <!-- 비로그인 상태 -->
+                <div class="acc-guest" id="accGuest">
+                    <a href="./login.html" class="btn-login">로그인</a>
+                    <a href="./signup.html" class="btn-signup">회원가입</a>
+                </div>
+                <!-- 로그인 상태 -->
+                <div class="acc-flex" id="accUser" style="display: none;">
+                    <div class="acc-trigger" id="accTrigger">
+                        <div class="acc">
+                            <img src="../assets/images/account.svg">
+                        </div>
+                        <div class="name-action">
+                            <div class="t-M" id="accName">사용자</div>
+                            <div class="t-S" id="accRole">임시 보호자</div>
                         </div>
                     </div>
                     <ul class="options t-M" id="accOptions">
                         <li class="link4">
                             <label class="chkLabel" for="protectable">
-                                <input type="checkbox" checked="checked" id="protectable" />
+                                <input type="checkbox" checked="checked" id="protectable">
                                 <span class="checkmark"></span>
                                 <span class="fosent">임시보호 가능</span>
                             </label>
                         </li>
                         <li class="link3"><a href="">정보 수정</a></li>
-                        <li class="link3"><a href="" id="logout">로그아웃</a></li>
-                    </ul>
+                        <li class="link3"><a href="#"
+                                onclick="auth.signOut().then(() => { location.href = '../index.html'; }); return false;">로그아웃</a>
+                        </li>
                 </div>
             </div>
         </header>

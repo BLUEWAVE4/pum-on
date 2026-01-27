@@ -1,11 +1,9 @@
 /*
   [기능 정의]
-
-  냥..
-  input입력 - api 데이터 조회(구현전) - 회원가입버튼눌렀을때 db저장되는 로직
+  input입력 - api 데이터 조회 - 회원가입버튼눌렀을때 db저장되는 로직
 */
 
-// DOM요소 (보호소)
+// ========== DOM요소 (보호소) ==========
 const selectShelterBtn = document.getElementById('btn-select-shelter');
 
 const shelterEmailEl = document.getElementById('shelter-email');
@@ -20,7 +18,7 @@ const shelterNmEl = document.getElementById('shelter-name');
 const shelterRegNmEl = document.getElementById('shelter-registration-number');
 const shelterAddressEl = document.getElementById('shelter-address');
 
-// DOM요소 (임보)
+// ========== DOM요소 (임보) ==========
 const selectFosterBtn = document.getElementById('btn-select-foster');
 
 const userEmailEl = document.getElementById('user-email');
@@ -31,43 +29,140 @@ const userNameEl = document.getElementById('user-name');
 const userPhoneEl = document.getElementById('user-phone');
 const userAddressEl = document.getElementById('user-address');
 
-//배열
 const userPrefDogEl = document.getElementById('user-prefer-dog');
 const userPrefCatEl = document.getElementById('user-prefer-cat');
 const userPrefEctEl = document.getElementById('user-prefer-etc');
-//배열
+
 const usersizeSEl = document.getElementById('user-size-small');
 const usersizeMEl = document.getElementById('user-size-medium');
 const usersizeLEl = document.getElementById('user-size-large');
-// 조건문
+
 const userExpNEl = document.getElementById('user-experience-no');
 const userExpYEl = document.getElementById('user-experience-yes');
 const userExpYNmEl = document.getElementById('user-experience-yesNm');
-//배열
+
 const userCareMediEl = document.getElementById('user-care-medicine');
 const userCaredisabledEl = document.getElementById('user-care-disabled');
 const userCareSeniorEl = document.getElementById('user-care-senior');
 
 const userCertNmEl = document.getElementById('user-cert-number');
 
-// DOM요소 (전송)
-const beforeBtn = document.getElementById('btn-before');
-const signUpBtn = document.getElementById('btn-signup');
+// ========== DOM요소 (전송) ==========
+const beforeBtns = document.querySelectorAll('.btn-before');
+const signUpBtns = document.querySelectorAll('.btn-signup');
 
-// DOM요소 (div)
+// ========== DOM요소 (div) ==========
 const signupSelect = document.getElementById('signupSelect');
 const shelterBtn = document.getElementById('btn-select-shelter');
 const fosterBtn = document.getElementById('btn-select-foster');
 
 const shelterBox = document.querySelector('.signup-shelter');
 const fosterBox = document.querySelector('.signup-users');
-/////////////////////////////////////////////////////
 
-// 전역 변수
+// ========== 전역 변수 ==========
 let selectedUserType = null;
+let shelterData = null;
 
-// 1. 보호소
-// Step 1: 보호소 선택
+// ========== 페이지 로드 시 보호소 데이터 가져오기 ==========
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('../assets/data/gyeonggi-shelter.json');
+        shelterData = await response.json();
+        console.log('보호소 데이터 로드 완료:', shelterData.length, '개');
+    } catch (error) {
+        console.error('데이터 로드 실패:', error);
+        alert('보호소 데이터를 불러오는데 실패했습니다.');
+    }
+});
+
+// ========== 보호소 정보 검색 함수 ==========
+async function findShelterByPhone() {
+    // 데이터 로드 확인
+    if (!shelterData) {
+        alert('데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+        return null;
+    }
+
+    // 입력값 가져오기
+    const userPhone = shelterRegNmEl.value.trim();
+    
+    if (!userPhone) {
+        alert('등록번호(전화번호)를 입력해주세요.');
+        return null;
+    }
+
+    // 전화번호로 보호소 찾기 (하이픈 유무 관계없이)
+    const shelter = shelterData.find(item => 
+        item.ENTRPS_TELNO.replace(/\-/g, '') === userPhone.replace(/\-/g, '')
+    );
+
+    if (shelter) {
+        // 주소 표시
+        shelterAddressEl.innerText = shelter.REFINE_LOTNO_ADDR;
+        
+        // 위도, 경도 변환 (문자열 → 숫자)
+        const latitude = parseFloat(shelter.REFINE_WGS84_LAT);
+        const longitude = parseFloat(shelter.REFINE_WGS84_LOGT);
+        
+        // 지도 표시
+        displayMap(latitude, longitude);
+        
+        // 추가 정보 로그
+        console.log('보호소명:', shelter.ENTRPS_NM);
+        console.log('수용능력:', shelter.ACEPTNC_ABLTY_CNT);
+        
+        return { latitude, longitude, shelter };
+    } else {
+        alert('해당 전화번호의 보호소를 찾을 수 없습니다.');
+        shelterAddressEl.innerText = '';
+        return null;
+    }
+}
+
+// ========== 지도 표시 함수 ==========
+// displayMap 함수 - kakao.maps.load() 제거
+function displayMap(lat, lng) {
+    console.log(`지도 표시: 위도 ${lat}, 경도 ${lng}`);
+    
+    try {
+        var container = document.getElementById('map');
+        
+        if (!container) {
+            console.error('지도를 표시할 #map 요소를 찾을 수 없습니다.');
+            return;
+        }
+        
+        var options = {
+            center: new kakao.maps.LatLng(lat, lng),
+            level: 3
+        };
+
+        var map = new kakao.maps.Map(container, options);
+
+        // 마커 생성
+        var markerPosition = new kakao.maps.LatLng(lat, lng);
+        var marker = new kakao.maps.Marker({
+            position: markerPosition
+        });
+
+        marker.setMap(map);
+        
+        console.log('지도 표시 성공!');
+    } catch (error) {
+        console.error('지도 표시 오류:', error);
+        alert('지도를 표시할 수 없습니다.');
+    }
+}
+
+// ========== 등록번호 입력 시 엔터키로 검색 ==========
+shelterRegNmEl.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault(); // 폼 제출 방지
+        findShelterByPhone();
+    }
+});
+
+// ========== 보호소 선택 버튼 ==========
 shelterBtn.addEventListener('click', () => {
     selectedUserType = 'shelter';
     signupSelect.classList.add('hidden');
@@ -76,26 +171,21 @@ shelterBtn.addEventListener('click', () => {
     console.log('보호소버튼클릭완료', selectedUserType);
 });
 
-// Step 2: 회원가입 함수
+// ========== 보호소 회원가입 함수 ==========
 const signUpShelter = async () => {
-    // 1. 값 가져오기
     const email = shelterEmailEl.value;
     const password = shelterPwEl.value;
     const passwordConfirm = shelterPwcEl.value;
 
-    // 2. 비밀번호 확인
     if (password !== passwordConfirm) {
         alert('비밀번호가 일치하지 않습니다.');
-        // 추후 일치하지 않음 문구 html 내부요소 삽입으로 표시
         return;
     }
 
     try {
-        // 3. Firebase Auth 회원가입
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const userId = userCredential.user.uid;
 
-        // 4. DB에 저장할 데이터
         const userData = {
             userType: selectedUserType,
             email: email,
@@ -113,18 +203,14 @@ const signUpShelter = async () => {
         };
         console.log(userData, '데이터입력값확인');
 
-        // 5. Realtime DB에 저장
         await database.ref('users/' + userId).set(userData);
-
-        alert('회원가입 완료!');
+        alert('보호소 회원가입 완료!');
     } catch (error) {
         alert('오류: ' + error.message);
     }
-    console.log('보호소회원가입완료');
 };
 
-// 2. 임시보호
-// Step 1: 보호소 선택
+// ========== 임시보호자 선택 버튼 ==========
 fosterBtn.addEventListener('click', () => {
     selectedUserType = 'foster';
     signupSelect.classList.add('hidden');
@@ -133,7 +219,7 @@ fosterBtn.addEventListener('click', () => {
     console.log('개인버튼클릭완료', selectedUserType);
 });
 
-// Step 2: 회원가입 함수
+// ========== 임시보호자 회원가입 함수 ==========
 const signUpFoster = async () => {
     const email = userEmailEl.value;
     const password = userPwEl.value;
@@ -141,7 +227,6 @@ const signUpFoster = async () => {
 
     if (password !== passwordConfirm) {
         alert('비밀번호가 일치하지 않습니다.');
-        // 엔터이벤트로 바로 html에 뜨게 뭘 좀 연결해야겟슴
         return;
     }
 
@@ -149,7 +234,7 @@ const signUpFoster = async () => {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const userId = userCredential.user.uid;
 
-        // 체크박스 수집 (배열)
+        // 체크박스 수집
         const preferAnimals = [];
         if (userPrefDogEl.checked) preferAnimals.push('dog');
         if (userPrefCatEl.checked) preferAnimals.push('cat');
@@ -165,18 +250,15 @@ const signUpFoster = async () => {
         if (userCaredisabledEl.checked) specialCare.push('disabled');
         if (userCareSeniorEl.checked) specialCare.push('senior');
 
-        // 반려동물 양육 유무
-        // - 경험 유 text input
+        // 양육 경험 처리
         let experienceYears = 0;
-
         if (userExpNEl.checked) {
             experienceYears = 0;
         }
         if (userExpYEl.checked) {
-            experienceYears = parseInt(userExpYNmEl.value);
+            experienceYears = parseInt(userExpYNmEl.value) || 0;
         }
 
-        // DB에 저장할 데이터
         const userData = {
             userType: selectedUserType,
             email: email,
@@ -190,10 +272,10 @@ const signUpFoster = async () => {
                 preferSizes: preferSizes,
                 experience: document.querySelector('input[name="user-experience"]:checked').value,
                 experienceYears: experienceYears,
-                specialCare: specialCare, // 선택사항 없으면 빈배열로 저장
+                specialCare: specialCare,
                 cert: document.querySelector('input[name="user-cert"]:checked').value,
                 certNumber: userCertNmEl.value,
-                isAvailable: true, // 임시보호가능상태 : 가입시 true, 추후 toggle 버튼, 상태업데이트
+                isAvailable: true,
             },
         };
         console.log(userData);
@@ -205,14 +287,22 @@ const signUpFoster = async () => {
     }
 };
 
-// Step 3: 회원가입 버튼이벤트 연결
-signUpBtn.addEventListener('click', async () => {
-    if (selectedUserType === 'shelter') {
-        await signUpShelter();
-    } else if (selectedUserType === 'foster') {
-        await signUpFoster();
-    } else {
-        alert('회원 유형을 선택해주세요.');
-    }
-    console.log('회원가입버튼클릭했다');
+// ========== 회원가입 버튼 이벤트 ==========
+signUpBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (selectedUserType === 'shelter') {
+            await signUpShelter();
+        } else if (selectedUserType === 'foster') {
+            await signUpFoster();
+        } else {
+            alert('회원 유형을 선택해주세요.');
+        }
+    });
+});
+
+// ========== 이전 버튼 이벤트 ==========
+beforeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        location.reload();
+    });
 });

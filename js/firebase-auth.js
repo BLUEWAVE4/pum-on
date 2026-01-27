@@ -87,3 +87,32 @@ async function checkAuth(requiredUserType = null) {
 // console.log('보호소 로그인 확인:', userData);}).catch(error => {
 //     console.error('Auth check failed:', error);
 //   });
+
+///////////////////////////////////////////////
+// 헤더 UI 업데이트 함수
+///////////////////////////////////////////////
+function updateHeaderUI(user, userData) {
+    const accLoading = document.getElementById('accLoading');
+    const accGuest = document.getElementById('accGuest');
+    const accUser = document.getElementById('accUser');
+    const accName = document.getElementById('accName');
+    const accRole = document.getElementById('accRole');
+
+    // 로딩 스피너 숨김
+    if (accLoading) accLoading.style.display = 'none';
+
+    if (user && userData) {
+        // 로그인 상태
+        if (accGuest) accGuest.style.display = 'none';
+        if (accUser) accUser.style.display = 'flex';
+        if (accName) accName.textContent = userData.fosterInfo?.name || userData.shelterInfo?.name || '사용자';
+        if (accRole) {
+            const roleMap = { foster: '임시 보호자', shelter: '보호소' };
+            accRole.textContent = roleMap[userData.userType] || userData.userType;
+        }
+    } else {
+        // 비로그인 상태
+        if (accGuest) accGuest.style.display = 'flex';
+        if (accUser) accUser.style.display = 'none';
+    }
+}
